@@ -15,7 +15,11 @@ def generate_launch_description():
                 [realsense2_camera_share_dir, "launch", "rs_launch.py"]
             )
         ),
-        launch_arguments={"pointcloud.enable": "true", "camera_namespace": ""}.items(),
+        launch_arguments={
+            "pointcloud.enable": "true",
+            "camera_name": "realsense",
+            "camera_namespace": "",
+        }.items(),
     )
 
     vidvipo_yolov2_tiny_launch = IncludeLaunchDescription(
