@@ -18,6 +18,6 @@ ament_auto_add_executable(obstacle_detector
 target_link_libraries(obstacle_detector ${PCL_LIBRARIES})
 
 install(DIRECTORY yolo_network_config/cfg yolo_network_config/weights DESTINATION share/${PROJECT_NAME}/yolo_network_config/)
-install(DIRECTORY launch config DESTINATION share/${PROJECT_NAME}/)
+install(DIRECTORY config launch rviz DESTINATION share/${PROJECT_NAME}/)
 
 ament_auto_package()
