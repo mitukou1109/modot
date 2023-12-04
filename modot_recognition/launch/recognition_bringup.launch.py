@@ -7,6 +7,7 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
+    modot_description_share_dir = get_package_share_directory("modot_description")
     modot_recognition_share_dir = get_package_share_directory("modot_recognition")
     realsense2_camera_share_dir = get_package_share_directory("realsense2_camera")
 
@@ -17,10 +18,19 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            "pointcloud.enable": "true",
             "camera_name": "realsense",
             "camera_namespace": "",
+            "enable_sync": "true",
+            "pointcloud.enable": "true",
         }.items(),
+    )
+
+    transform_publisher_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [modot_description_share_dir, "launch", "transform_publisher.launch.py"]
+            )
+        )
     )
 
     vidvipo_yolov2_tiny_launch = IncludeLaunchDescription(
@@ -54,6 +64,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             realsense2_camera_launch,
+            transform_publisher_launch,
             # vidvipo_yolov2_tiny_launch,
             obstacle_detector_node,
             rviz_node,
