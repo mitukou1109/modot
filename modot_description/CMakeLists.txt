@@ -7,6 +7,13 @@ endif()
 
 find_package(ament_cmake_auto REQUIRED)
 
+ament_auto_find_build_dependencies()
+
+ament_auto_add_executable(camera_tf_publisher
+  src/camera_tf_publisher_node.cpp
+  src/camera_tf_publisher.cpp
+)
+
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME}/)
 
 ament_auto_package()
