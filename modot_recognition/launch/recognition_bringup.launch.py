@@ -21,6 +21,7 @@ def generate_launch_description():
             "camera_name": "realsense",
             "camera_namespace": "",
             "enable_sync": "true",
+            "enable_accel": "true",
             "pointcloud.enable": "true",
         }.items(),
     )
@@ -28,7 +29,7 @@ def generate_launch_description():
     transform_publisher_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [modot_description_share_dir, "launch", "transform_publisher.launch.py"]
+                [modot_description_share_dir, "launch", "description_bringup.launch.py"]
             )
         )
     )
