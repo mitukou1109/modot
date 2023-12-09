@@ -7,7 +7,6 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    modot_description_share_dir = get_package_share_directory("modot_description")
     modot_recognition_share_dir = get_package_share_directory("modot_recognition")
     realsense2_camera_share_dir = get_package_share_directory("realsense2_camera")
 
@@ -26,12 +25,21 @@ def generate_launch_description():
         }.items(),
     )
 
-    transform_publisher_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [modot_description_share_dir, "launch", "description_bringup.launch.py"]
-            )
-        )
+    realsense_tf_publisher_node = Node(
+        package="modot_description",
+        executable="camera_tf_publisher",
+        name="realsense_tf_publisher",
+        output="screen",
+        remappings=[("accel", "/realsense/accel/sample")],
+        parameters=[
+            {
+                "camera_frame": "realsense_link",
+                "imu_frame": "realsense_accel_optical_frame",
+                "camera_x": 0.0,
+                "camera_y": -0.1,
+                "camera_z": 1.5,
+            }
+        ],
     )
 
     vidvipo_yolov2_tiny_launch = IncludeLaunchDescription(
@@ -65,7 +73,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             realsense2_camera_launch,
-            transform_publisher_launch,
+            realsense_tf_publisher_node,
             # vidvipo_yolov2_tiny_launch,
             obstacle_detector_node,
             rviz_node,
