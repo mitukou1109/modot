@@ -25,28 +25,21 @@ ObstacleDetector::ObstacleDetector()
   this->declare_parameter("sac_threshold", sac_threshold_);
   this->declare_parameter("plane_segmentation_ratio", plane_segmentation_ratio_);
   this->declare_parameter("cluster_tolerance", cluster_tolerance_);
-  this->declare_parameter("min_cluster_size", min_cluster_size_);
-  this->declare_parameter("max_cluster_size", max_cluster_size_);
+
+  parameter_event_handler_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
+  parameter_updater_ = std::make_unique<modot_lib::ParameterUpdater>(parameter_event_handler_);
+  parameter_updater_->addParameter("leaf_size", leaf_size_);
+  parameter_updater_->addParameter("sac_threshold", sac_threshold_);
+  parameter_updater_->addParameter("plane_segmentation_ratio", plane_segmentation_ratio_);
+  parameter_updater_->addParameter("cluster_tolerance", cluster_tolerance_);
+  parameter_updater_->addParameter("min_cluster_size", min_cluster_size_);
+  parameter_updater_->addParameter("max_cluster_size", max_cluster_size_);
 
   point_cloud_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("~/point_cloud", 10);
   point_cloud_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
       "point_cloud", 10, std::bind(&ObstacleDetector::pointCloudCallback, this, _1));
 
-  parameter_event_handler_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
-  parameter_callback_handle_.push_back(parameter_event_handler_->add_parameter_callback(
-      "leaf_size", [this](const rclcpp::Parameter& p) { parameterCallback(p, leaf_size_); }));
-  parameter_callback_handle_.push_back(parameter_event_handler_->add_parameter_callback(
-      "sac_threshold", [this](const rclcpp::Parameter& p) { parameterCallback(p, sac_threshold_); }));
-  parameter_callback_handle_.push_back(
-      parameter_event_handler_->add_parameter_callback("plane_segmentation_ratio", [this](const rclcpp::Parameter& p) {
-        parameterCallback(p, plane_segmentation_ratio_);
-      }));
-  parameter_callback_handle_.push_back(parameter_event_handler_->add_parameter_callback(
-      "cluster_tolerance", [this](const rclcpp::Parameter& p) { parameterCallback(p, cluster_tolerance_); }));
-  parameter_callback_handle_.push_back(parameter_event_handler_->add_parameter_callback(
-      "min_cluster_size", [this](const rclcpp::Parameter& p) { parameterCallback(p, min_cluster_size_); }));
-  parameter_callback_handle_.push_back(parameter_event_handler_->add_parameter_callback(
-      "max_cluster_size", [this](const rclcpp::Parameter& p) { parameterCallback(p, max_cluster_size_); }));
+
 }
 
 void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
@@ -131,19 +124,6 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
   sensor_msgs::msg::PointCloud2 cloud_msg;
   pcl::toROSMsg(*cloud, cloud_msg);
   point_cloud_pub_->publish(cloud_msg);
-}
-
-template <class T>
-void ObstacleDetector::parameterCallback(const rclcpp::Parameter& p, T& out)
-{
-  try
-  {
-    out = p.get_value<T>();
-  }
-  catch (const rclcpp::ParameterTypeException& e)
-  {
-    RCLCPP_ERROR(this->get_logger(), e.what());
-  }
 }
 
 double ObstacleDetector::getMeanZ(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cloud,

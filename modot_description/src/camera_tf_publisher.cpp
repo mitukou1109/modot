@@ -28,6 +28,9 @@ CameraTFPublisher::CameraTFPublisher()
   this->get_parameter("camera_y", camera_position_[1]);
   this->get_parameter("camera_z", camera_position_[2]);
 
+  parameter_event_handler_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
+  parameter_updater_ = std::make_unique<modot_lib::ParameterUpdater>(parameter_event_handler_);
+  parameter_updater_->addParameter("lpf_factor", lpf_factor_);
 
   accel_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("accel", rclcpp::QoS(10).best_effort(),
                                                                 std::bind(&CameraTFPublisher::accelCallback, this, _1));
