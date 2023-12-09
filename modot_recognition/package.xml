@@ -11,8 +11,10 @@
 
   <depend>modot_lib</depend>
   <depend>pcl_conversions</depend>
+  <depend>pcl_ros</depend>
   <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
+  <depend>tf2_ros</depend>
 
   <exec_depend>darknet_ros</exec_depend>
   <exec_depend>modot_description</exec_depend>
