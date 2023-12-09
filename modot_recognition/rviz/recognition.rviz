@@ -25,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloudFilter
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
@@ -52,7 +52,9 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        base_footprint:
+        realsense_accel_frame:
+          Value: true
+        realsense_accel_optical_frame:
           Value: true
         realsense_color_frame:
           Value: true
@@ -64,14 +66,19 @@ Visualization Manager:
           Value: true
         realsense_link:
           Value: true
+        world:
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: false
       Tree:
-        base_footprint:
+        world:
           realsense_link:
+            realsense_accel_frame:
+              realsense_accel_optical_frame:
+                {}
             realsense_color_frame:
               realsense_color_optical_frame:
                 {}
@@ -165,7 +172,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base_footprint
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:
@@ -246,5 +253,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1822
-  X: 3
-  Y: 17
+  X: -29
+  Y: -15
