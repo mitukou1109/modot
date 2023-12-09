@@ -25,6 +25,8 @@ ObstacleDetector::ObstacleDetector()
   this->declare_parameter("sac_threshold", sac_threshold_);
   this->declare_parameter("plane_segmentation_ratio", plane_segmentation_ratio_);
   this->declare_parameter("cluster_tolerance", cluster_tolerance_);
+  this->declare_parameter("min_cluster_size", static_cast<int>(min_cluster_size_));
+  this->declare_parameter("max_cluster_size", static_cast<int>(max_cluster_size_));
 
   parameter_event_handler_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
   parameter_updater_ = std::make_unique<modot_lib::ParameterUpdater>(parameter_event_handler_);

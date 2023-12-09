@@ -31,6 +31,6 @@ private:
   double sac_threshold_;
   double plane_segmentation_ratio_;
   double cluster_tolerance_;
-  int min_cluster_size_;
-  int max_cluster_size_;
+  uint32_t min_cluster_size_;
+  uint32_t max_cluster_size_;
 };
