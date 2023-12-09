@@ -20,9 +20,10 @@ private:
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
-  std::string base_frame_;
+
+  std::string global_frame_;
   std::string camera_frame_;
   std::string imu_frame_;
-  tf2::Vector3 camera_position_wrt_base_;
+  tf2::Vector3 camera_position_;
   double lpf_factor_;
 };

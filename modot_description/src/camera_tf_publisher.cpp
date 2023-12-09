@@ -6,27 +6,28 @@ using namespace std::placeholders;
 
 CameraTFPublisher::CameraTFPublisher()
   : Node("tf_publisher")
-  , base_frame_("base_link")
+  , global_frame_("world")
   , camera_frame_("camera_link")
   , imu_frame_("imu_link")
-  , camera_position_wrt_base_(0, 0, 0)
+  , camera_position_(0, 0, 0)
   , lpf_factor_(0.8)
 {
-  this->declare_parameter("base_frame", base_frame_);
+  this->declare_parameter("global_frame", global_frame_);
   this->declare_parameter("camera_frame", camera_frame_);
   this->declare_parameter("imu_frame", imu_frame_);
   this->declare_parameter("lpf_factor", lpf_factor_);
-  this->declare_parameter("camera_x_wrt_base", camera_position_wrt_base_[0]);
-  this->declare_parameter("camera_y_wrt_base", camera_position_wrt_base_[1]);
-  this->declare_parameter("camera_z_wrt_base", camera_position_wrt_base_[2]);
+  this->declare_parameter("camera_x", camera_position_[0]);
+  this->declare_parameter("camera_y", camera_position_[1]);
+  this->declare_parameter("camera_z", camera_position_[2]);
 
-  this->get_parameter("base_frame", base_frame_);
+  this->get_parameter("global_frame", global_frame_);
   this->get_parameter("camera_frame", camera_frame_);
   this->get_parameter("imu_frame", imu_frame_);
   this->get_parameter("lpf_factor", lpf_factor_);
-  this->get_parameter("camera_x_wrt_base", camera_position_wrt_base_[0]);
-  this->get_parameter("camera_y_wrt_base", camera_position_wrt_base_[1]);
-  this->get_parameter("camera_z_wrt_base", camera_position_wrt_base_[2]);
+  this->get_parameter("camera_x", camera_position_[0]);
+  this->get_parameter("camera_y", camera_position_[1]);
+  this->get_parameter("camera_z", camera_position_[2]);
+
 
   accel_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("accel", rclcpp::QoS(10).best_effort(),
                                                                 std::bind(&CameraTFPublisher::accelCallback, this, _1));
@@ -55,25 +56,20 @@ void CameraTFPublisher::accelCallback(const sensor_msgs::msg::Imu::SharedPtr msg
   tf2::Vector3 accel;
   tf2::fromMsg(msg->linear_acceleration, accel);
 
-  auto z_axis = lpf_factor_ * accel_prev + (1.0 - lpf_factor_) * accel;
+  auto gravity = lpf_factor_ * accel_prev + (1.0 - lpf_factor_) * accel;
   accel_prev = accel;
 
-  tf2::Vector3 x_axis(0, 0, 1);
-  auto y_axis = z_axis.cross(x_axis);
+  tf2::Quaternion global_to_imu_quat;
+  global_to_imu_quat.setEuler(std::atan2(-gravity.y(), gravity.z()), 0, 0);
+  // global_to_imu_quat.setEuler(std::atan2(-gravity.y(), gravity.z()), 0,
+  // std::atan2(gravity.y(), -gravity.x()));
 
-  tf2::Transform base_to_imu_tf;
-  auto& rot = base_to_imu_tf.getBasis();
-  rot[0] = x_axis.normalized();
-  rot[1] = y_axis.normalized();
-  rot[2] = z_axis.normalized();
+  tf2::Transform global_to_camera_tf(global_to_imu_quat * imu_to_camera_tf.getRotation(), camera_position_);
 
-  auto base_to_camera_tf = base_to_imu_tf * imu_to_camera_tf;
-  base_to_camera_tf.setOrigin(camera_position_wrt_base_);
-
-  geometry_msgs::msg::TransformStamped base_to_camera_tf_msg;
-  base_to_camera_tf_msg.header.stamp = msg->header.stamp;
-  base_to_camera_tf_msg.header.frame_id = base_frame_;
-  base_to_camera_tf_msg.child_frame_id = camera_frame_;
-  tf2::toMsg(base_to_camera_tf, base_to_camera_tf_msg.transform);
-  tf_broadcaster_->sendTransform(base_to_camera_tf_msg);
+  geometry_msgs::msg::TransformStamped global_to_camera_tf_msg;
+  global_to_camera_tf_msg.header.stamp = msg->header.stamp;
+  global_to_camera_tf_msg.header.frame_id = global_frame_;
+  global_to_camera_tf_msg.child_frame_id = camera_frame_;
+  tf2::toMsg(global_to_camera_tf, global_to_camera_tf_msg.transform);
+  tf_broadcaster_->sendTransform(global_to_camera_tf_msg);
 }
