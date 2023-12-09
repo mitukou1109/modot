@@ -63,7 +63,7 @@ void CameraTFPublisher::accelCallback(const sensor_msgs::msg::Imu::SharedPtr msg
   accel_prev = accel;
 
   tf2::Quaternion global_to_imu_quat;
-  global_to_imu_quat.setEuler(std::atan2(-gravity.y(), gravity.z()), 0, 0);
+  global_to_imu_quat.setEuler(std::atan2(-gravity.y(), gravity.z()), 0, -M_PI_2);
   // global_to_imu_quat.setEuler(std::atan2(-gravity.y(), gravity.z()), 0,
   // std::atan2(gravity.y(), -gravity.x()));
 
