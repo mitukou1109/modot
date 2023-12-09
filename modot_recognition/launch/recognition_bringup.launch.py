@@ -35,7 +35,7 @@ def generate_launch_description():
             {
                 "camera_frame": "realsense_link",
                 "imu_frame": "realsense_accel_optical_frame",
-                "camera_x": 0.0,
+                "camera_x": 0.1,
                 "camera_y": -0.1,
                 "camera_z": 1.5,
             }

@@ -15,7 +15,7 @@ const std::vector<std::array<uint8_t, 3>> ObstacleDetector::PALETTE = { { { 255,
 ObstacleDetector::ObstacleDetector()
   : Node("obstacle_detector")
   , leaf_size_(0.05)
-  , sac_threshold_(0.01)
+  , sac_threshold_(0.03)
   , plane_segmentation_ratio_(0.3)
   , cluster_tolerance_(0.1)
   , min_cluster_size_(10)
