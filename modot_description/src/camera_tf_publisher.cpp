@@ -1,6 +1,6 @@
 #include "modot_description/camera_tf_publisher.hpp"
 
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 using namespace std::placeholders;
 
@@ -28,10 +28,6 @@ CameraTFPublisher::CameraTFPublisher()
   this->get_parameter("camera_y", camera_position_[1]);
   this->get_parameter("camera_z", camera_position_[2]);
 
-  parameter_event_handler_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
-  parameter_updater_ = std::make_unique<modot_lib::ParameterUpdater>(parameter_event_handler_);
-  parameter_updater_->addParameter("lpf_factor", lpf_factor_);
-
   accel_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("accel", rclcpp::QoS(10).best_effort(),
                                                                 std::bind(&CameraTFPublisher::accelCallback, this, _1));
 
@@ -45,6 +41,8 @@ void CameraTFPublisher::accelCallback(const sensor_msgs::msg::Imu::SharedPtr msg
 {
   static tf2::Vector3 accel_prev;
 
+  this->get_parameter("lpf_factor", lpf_factor_);
+
   tf2::Stamped<tf2::Transform> imu_to_camera_tf;
   try
   {
@@ -56,8 +54,7 @@ void CameraTFPublisher::accelCallback(const sensor_msgs::msg::Imu::SharedPtr msg
     return;
   }
 
-  tf2::Vector3 accel;
-  tf2::fromMsg(msg->linear_acceleration, accel);
+  tf2::Vector3 accel(msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
 
   auto gravity = lpf_factor_ * accel_prev + (1.0 - lpf_factor_) * accel;
   accel_prev = accel;
@@ -73,6 +70,6 @@ void CameraTFPublisher::accelCallback(const sensor_msgs::msg::Imu::SharedPtr msg
   global_to_camera_tf_msg.header.stamp = msg->header.stamp;
   global_to_camera_tf_msg.header.frame_id = global_frame_;
   global_to_camera_tf_msg.child_frame_id = camera_frame_;
-  tf2::toMsg(global_to_camera_tf, global_to_camera_tf_msg.transform);
+  global_to_camera_tf_msg.transform = tf2::toMsg(global_to_camera_tf);
   tf_broadcaster_->sendTransform(global_to_camera_tf_msg);
 }

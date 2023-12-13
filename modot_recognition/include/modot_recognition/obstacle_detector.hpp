@@ -8,8 +8,6 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
-#include "modot_lib/parameter_updater.hpp"
-
 class ObstacleDetector : public rclcpp::Node
 {
 public:
@@ -30,9 +28,6 @@ private:
 
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
-
-  std::shared_ptr<rclcpp::ParameterEventHandler> parameter_event_handler_;
-  std::unique_ptr<modot_lib::ParameterUpdater> parameter_updater_;
 
   std::string global_frame_;
   double leaf_size_;

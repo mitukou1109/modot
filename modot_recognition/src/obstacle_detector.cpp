@@ -7,8 +7,6 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.hpp>
 
-using namespace std::placeholders;
-
 const std::vector<std::array<uint8_t, 3>> ObstacleDetector::PALETTE = { { { 0, 255, 0 } },   { { 0, 0, 255 } },
                                                                         { { 255, 255, 0 } }, { { 255, 0, 255 } },
                                                                         { { 0, 255, 255 } }, { { 255, 255, 255 } } };
@@ -35,19 +33,9 @@ ObstacleDetector::ObstacleDetector()
 
   this->get_parameter("global_frame", global_frame_);
 
-  parameter_event_handler_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
-  parameter_updater_ = std::make_unique<modot_lib::ParameterUpdater>(parameter_event_handler_);
-  parameter_updater_->addParameter("leaf_size", leaf_size_);
-  parameter_updater_->addParameter("sac_threshold", sac_threshold_);
-  parameter_updater_->addParameter("plane_segmentation_ratio", plane_segmentation_ratio_);
-  parameter_updater_->addParameter("cluster_tolerance", cluster_tolerance_);
-  parameter_updater_->addParameter("min_cluster_size", min_cluster_size_);
-  parameter_updater_->addParameter("max_cluster_size", max_cluster_size_);
-  parameter_updater_->addParameter("obstacle_range", obstacle_range_);
-
   point_cloud_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("~/point_cloud", 10);
   point_cloud_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-      "point_cloud", 10, std::bind(&ObstacleDetector::pointCloudCallback, this, _1));
+      "point_cloud", 10, std::bind(&ObstacleDetector::pointCloudCallback, this, std::placeholders::_1));
 
   tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
@@ -55,7 +43,15 @@ ObstacleDetector::ObstacleDetector()
 
 void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
 {
-  auto cloud = std::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
+  this->get_parameter("leaf_size", leaf_size_);
+  this->get_parameter("sac_threshold", sac_threshold_);
+  this->get_parameter("plane_segmentation_ratio", plane_segmentation_ratio_);
+  this->get_parameter("cluster_tolerance", cluster_tolerance_);
+  this->get_parameter("min_cluster_size", min_cluster_size_);
+  this->get_parameter("max_cluster_size", max_cluster_size_);
+  this->get_parameter("obstacle_range", obstacle_range_);
+
+  auto cloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
   pcl::fromROSMsg(*msg, *cloud);
 
   if (cloud->width >= 3)
@@ -73,7 +69,7 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
 
     std::vector<pcl::PointIndices::Ptr> planes;
     auto coefficients = std::make_shared<pcl::ModelCoefficients>();
-    auto segmented_cloud = std::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
+    auto segmented_cloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
     pcl::copyPointCloud(*cloud, *segmented_cloud);
 
     pcl::ExtractIndices<pcl::PointXYZRGB> extract;
@@ -81,7 +77,7 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
 
     while (segmented_cloud->width >= plane_segmentation_ratio_ * cloud->width)
     {
-      auto inliers = std::make_shared<pcl::PointIndices>();
+      auto inliers = boost::make_shared<pcl::PointIndices>();
       seg.setInputCloud(segmented_cloud);
       seg.segment(*inliers, *coefficients);
       planes.push_back(inliers);
@@ -104,7 +100,7 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
 
     if (cloud->width >= min_cluster_size_)
     {
-      auto tree = std::make_shared<pcl::search::KdTree<pcl::PointXYZRGB>>();
+      auto tree = boost::make_shared<pcl::search::KdTree<pcl::PointXYZRGB>>();
       tree->setInputCloud(cloud);
 
       pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ece;
@@ -151,7 +147,7 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
             RCLCPP_INFO_STREAM(this->get_logger(), "Obstacle detected!");
           }
 
-          auto cluster_cloud = std::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
+          auto cluster_cloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
           pcl::copyPointCloud(*cloud, clusters, *cluster_cloud);
           cloud = cluster_cloud;
         }
