@@ -1,0 +1,7 @@
+realsense:
+  realsense:
+    ros__parameters:
+      accel_qos: SENSOR_DATA
+      color_qos: SENSOR_DATA
+      depth_qos: SENSOR_DATA
+      pointcloud.pointcloud_qos: SENSOR_DATA

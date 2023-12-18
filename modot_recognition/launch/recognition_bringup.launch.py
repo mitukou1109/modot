@@ -10,6 +10,18 @@ def generate_launch_description():
     modot_recognition_share_dir = get_package_share_directory("modot_recognition")
     realsense2_camera_share_dir = get_package_share_directory("realsense2_camera")
 
+    # realsense_config_file = PathJoinSubstitution(
+    #     [
+    #         modot_recognition_share_dir,
+    #         "config",
+    #         "realsense2_camera",
+    #         "realsense.yaml",
+    #     ]
+    # )
+    realsense_config_file = (
+        f"'{modot_recognition_share_dir}/config/realsense2_camera/realsense.yaml'"
+    )
+
     realsense2_camera_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -22,6 +34,7 @@ def generate_launch_description():
             "enable_sync": "true",
             "enable_accel": "true",
             "pointcloud.enable": "true",
+            "config_file": realsense_config_file,
         }.items(),
     )
 

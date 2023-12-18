@@ -28,7 +28,7 @@ CameraTFPublisher::CameraTFPublisher()
   this->get_parameter("camera_y", camera_position_[1]);
   this->get_parameter("camera_z", camera_position_[2]);
 
-  accel_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("accel", rclcpp::QoS(10).best_effort(),
+  accel_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("accel", rclcpp::SensorDataQoS(),
                                                                 std::bind(&CameraTFPublisher::accelCallback, this, _1));
 
   tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
