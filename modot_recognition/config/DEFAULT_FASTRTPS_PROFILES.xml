@@ -1,0 +1,34 @@
+<dds xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
+  <profiles>
+    <transport_descriptors>
+      <transport_descriptor>
+        <transport_id>TransportProfile</transport_id>
+        <type>UDPv4</type>
+        <maxMessageSize>2000</maxMessageSize>
+        <non_blocking_send>true</non_blocking_send>
+      </transport_descriptor>
+    </transport_descriptors>
+
+    <participant profile_name="participant_profile" is_default_profile="true">
+      <rtps>
+        <userTransports>
+          <transport_id>TransportProfile</transport_id>
+        </userTransports>
+        <useBuiltinTransports>false</useBuiltinTransports>
+      </rtps>
+    </participant>
+
+    <publisher profile_name="publisher_profile" is_default_profile="true">
+      <qos>
+        <publishMode>
+          <kind>SYNCHRONOUS</kind>
+        </publishMode>
+      </qos>
+      <historyMemoryPolicy>PREALLOCATED_WITH_REALLOC</historyMemoryPolicy>
+    </publisher>
+
+    <subscriber profile_name="subscriber_profile" is_default_profile="true">
+      <historyMemoryPolicy>PREALLOCATED_WITH_REALLOC</historyMemoryPolicy>
+    </subscriber>
+  </profiles>
+</dds>

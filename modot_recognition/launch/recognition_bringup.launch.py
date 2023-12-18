@@ -1,6 +1,6 @@
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import GroupAction, IncludeLaunchDescription, SetEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
@@ -21,6 +21,23 @@ def generate_launch_description():
     # realsense_config_file = (
     #     f"'{modot_recognition_share_dir}/config/realsense2_camera/realsense.yaml'"
     # )
+
+    rmw_fastrtps_group = GroupAction(
+        [
+            SetEnvironmentVariable(
+                "FASTRTPS_DEFAULT_PROFILES_FILE",
+                PathJoinSubstitution(
+                    [
+                        modot_recognition_share_dir,
+                        "config",
+                        "DEFAULT_FASTRTPS_PROFILES.xml",
+                    ]
+                ),
+            ),
+            SetEnvironmentVariable("RMW_FASTRTPS_USE_QOS_FROM_XML", "1"),
+            SetEnvironmentVariable("RMW_IMPLEMENTATION", "rmw_fastrtps_cpp"),
+        ]
+    )
 
     realsense2_camera_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -85,6 +102,7 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
+            rmw_fastrtps_group,
             realsense2_camera_launch,
             realsense_tf_publisher_node,
             # vidvipo_yolov2_tiny_launch,
