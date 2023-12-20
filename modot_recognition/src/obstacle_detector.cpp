@@ -46,6 +46,7 @@ ObstacleDetector::ObstacleDetector()
   parameter_updater_->addParameter("obstacle_range", obstacle_range_);
 
   point_cloud_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("~/point_cloud", 10);
+  obstacle_centroid_pub_ = this->create_publisher<geometry_msgs::msg::PointStamped>("~/obstacle_centroid", 1);
   point_cloud_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
       "point_cloud", rclcpp::SensorDataQoS(), std::bind(&ObstacleDetector::pointCloudCallback, this, _1));
 
@@ -148,7 +149,17 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
 
           if (getMin2DDistance(cloud, closest_obstacle) < obstacle_range_)
           {
-            RCLCPP_INFO_STREAM(this->get_logger(), "Obstacle detected!");
+            Eigen::Vector4f centroid;
+            if (pcl::compute3DCentroid(*cloud, closest_obstacle, centroid) != 0)
+            {
+              geometry_msgs::msg::PointStamped centroid_msg;
+              centroid_msg.header.stamp = msg->header.stamp;
+              centroid_msg.header.frame_id = cloud->header.frame_id;
+              centroid_msg.point.x = centroid[0];
+              centroid_msg.point.y = centroid[1];
+              centroid_msg.point.z = centroid[2];
+              obstacle_centroid_pub_->publish(centroid_msg);
+            }
           }
 
           auto cluster_cloud = std::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
