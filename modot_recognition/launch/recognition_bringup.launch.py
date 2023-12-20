@@ -88,6 +88,13 @@ def generate_launch_description():
         remappings=[("point_cloud", "/realsense/depth/color/points")],
     )
 
+    sound_notifier_node = Node(
+        package="modot_notification",
+        executable="sound_notifier",
+        name="sound_notifier",
+        output="screen",
+    )
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -107,6 +114,7 @@ def generate_launch_description():
             realsense_tf_publisher_node,
             # vidvipo_yolov2_tiny_launch,
             obstacle_detector_node,
+            sound_notifier_node,
             rviz_node,
         ]
     )
