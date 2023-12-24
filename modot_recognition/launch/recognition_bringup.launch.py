@@ -18,9 +18,6 @@ def generate_launch_description():
             "realsense.yaml",
         ]
     )
-    # realsense_config_file = (
-    #     f"'{modot_recognition_share_dir}/config/realsense2_camera/realsense.yaml'"
-    # )
 
     realsense2_camera_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
