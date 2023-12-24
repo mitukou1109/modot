@@ -19,6 +19,14 @@ def generate_launch_description():
         ]
     )
 
+    yolo_model = PathJoinSubstitution(
+        [
+            modot_recognition_share_dir,
+            "yolo_model",
+            "vidvipo_yolov8n_2023-05-19_full_integer_quant_edgetpu.tflite",
+        ]
+    )
+
     realsense2_camera_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -52,12 +60,21 @@ def generate_launch_description():
         ],
     )
 
-    vidvipo_yolov2_tiny_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [modot_recognition_share_dir, "launch", "vidvipo_yolov2_tiny.launch.py"]
-            )
-        )
+    yolo_detector_node = Node(
+        package="ultralytics_ros",
+        executable="detector",
+        name="yolo_detector",
+        output="screen",
+        remappings=[("image_raw", "/realsense/color/image_raw")],
+        parameters=[
+            {
+                "yolo_model": yolo_model,
+                "source_subimage_size": 600,
+                "model_conf_threshold": 0.3,
+                "model_iou_threshold": 0.5,
+                "model_image_size": 416,
+            }
+        ],
     )
 
     obstacle_detector_node = Node(
@@ -91,7 +108,7 @@ def generate_launch_description():
         [
             realsense2_camera_launch,
             realsense_tf_publisher_node,
-            # vidvipo_yolov2_tiny_launch,
+            yolo_detector_node,
             obstacle_detector_node,
             sound_notifier_node,
             rviz_node,
