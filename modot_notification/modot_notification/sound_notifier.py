@@ -52,8 +52,7 @@ class SoundNotifier(Node):
             1,
         )
 
-    def play_face_sound(self, directions: list[str], ids: list[str]) -> None:
-        assert len(directions) == len(ids)
+    def play_face_sound(self, direction: str, ids: list[str]) -> None:
         state = 0
         face_index = 0
         while True:
@@ -61,9 +60,7 @@ class SoundNotifier(Node):
                 self.face_sound_playback.stop()
                 break
             if state == 0:
-                self.face_sound_playback = self.direction_sounds[
-                    directions[face_index]
-                ].play()
+                self.face_sound_playback = self.direction_sounds[direction].play()
                 state = 1
             elif state == 1:
                 if not self.face_sound_playback.is_playing():
@@ -72,7 +69,7 @@ class SoundNotifier(Node):
             elif state == 2:
                 if not self.face_sound_playback.is_playing():
                     face_index += 1
-                    state = 3 if face_index >= len(directions) else 0
+                    state = 3 if face_index >= len(ids) else 1
             elif state == 3:
                 self.face_sound_playback = self.exist_sound.play()
                 state = 4
@@ -107,29 +104,33 @@ class SoundNotifier(Node):
             ):
                 self.obstacle_sound_playback.wait_done()
 
-            detection: vision_msgs.msg.Detection2D
             front_range = (
                 self.get_parameter("face_front_range")
                 .get_parameter_value()
                 .double_value
             )
-            directions = []
             ids = []
+            detection: vision_msgs.msg.Detection2D
             for detection in msg.detections:
                 normalized_x = (
                     detection.bbox.center.position.x
                     / self.face_identifier_result_image_width
                 )
-                directions.append(
-                    "left"
-                    if normalized_x < (1 - front_range) / 2
-                    else ("right" if normalized_x > (1 + front_range) / 2 else "front")
-                )
+                if ids:
+                    direction = "from_left"
+                else:
+                    if normalized_x < (1 - front_range) / 2:
+                        direction = "left"
+                    elif normalized_x > (1 + front_range) / 2:
+                        direction = "right"
+                    else:
+                        direction = "front"
                 ids.append(detection.id)
-            self.play_face_sound_thread = StoppableThread(
-                target=self.play_face_sound, args=(directions, ids)
-            )
-            self.play_face_sound_thread.start()
+            if ids:
+                self.play_face_sound_thread = StoppableThread(
+                    target=self.play_face_sound, args=(direction, ids)
+                )
+                self.play_face_sound_thread.start()
 
     def face_identifier_result_image_callback(self, msg: sensor_msgs.msg.Image) -> None:
         self.face_identifier_result_image_width = msg.width

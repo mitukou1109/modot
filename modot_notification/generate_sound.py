@@ -41,6 +41,7 @@ if __name__ == "__main__":
             "direction_left": ("左に", "ja"),
             "direction_right": ("右に", "ja"),
             "direction_front": ("前に", "ja"),
+            "direction_from_left": ("左から", "ja"),
             "exist": ("が、います", "ja"),
         }
     )
