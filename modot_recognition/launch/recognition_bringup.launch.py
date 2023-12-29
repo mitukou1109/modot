@@ -36,9 +36,7 @@ def generate_launch_description():
         launch_arguments={
             "camera_name": "realsense",
             "camera_namespace": "",
-            "enable_sync": "true",
             "enable_accel": "true",
-            "pointcloud.enable": "true",
             "config_file": realsense_config_file,
         }.items(),
     )
@@ -82,7 +80,9 @@ def generate_launch_description():
         executable="obstacle_detector",
         name="obstacle_detector",
         output="screen",
-        remappings=[("point_cloud", "/realsense/depth/color/points")],
+        remappings=[
+            ("depth/image_raw", "/realsense/depth/image_rect_raw"),
+        ],
     )
 
     sound_notifier_node = Node(
