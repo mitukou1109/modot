@@ -36,8 +36,8 @@ if __name__ == "__main__":
     generate_sound(
         {
             "obstacle": ("障害物があります", "ja"),
-            "signal_blue": ("青信号です", "ja"),
-            "signal_red": ("赤信号です", "ja"),
+            "yolo_signal_blue": ("青信号です", "ja"),
+            "yolo_signal_red": ("赤信号です", "ja"),
             "direction_left": ("左に", "ja"),
             "direction_right": ("右に", "ja"),
             "direction_front": ("前に", "ja"),
