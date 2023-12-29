@@ -85,6 +85,14 @@ def generate_launch_description():
         remappings=[("point_cloud", "/realsense/depth/color/points")],
     )
 
+    face_identifier_node = Node(
+        package="face_recognition_ros",
+        executable="face_identifier",
+        name="face_identifier",
+        output="screen",
+        remappings=[("image_raw", "/realsense/color/image_raw")],
+    )
+
     sound_notifier_node = Node(
         package="modot_notification",
         executable="sound_notifier",
@@ -110,6 +118,7 @@ def generate_launch_description():
             realsense_tf_publisher_node,
             yolo_detector_node,
             obstacle_detector_node,
+            face_identifier_node,
             sound_notifier_node,
             rviz_node,
         ]
