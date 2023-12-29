@@ -20,10 +20,11 @@ class SoundNotifier(Node):
     def __init__(self) -> None:
         super().__init__("sound_notifier")
 
+        self.obstacle_sound = SoundNotifier.create_sound_by_name("obstacle")
         self.yolo_sounds = SoundNotifier.create_sound_set_by_prefix("yolo")
         self.direction_sounds = SoundNotifier.create_sound_set_by_prefix("direction")
         self.face_sounds = SoundNotifier.create_sound_set_by_prefix("face")
-        self.exist_sound = SoundNotifier.create_sound_from_by_name("exist")
+        self.exist_sound = SoundNotifier.create_sound_by_name("exist")
 
         self.obstacle_sound_playback: simpleaudio.PlayObject = None
         self.misc_sound_playback: simpleaudio.PlayObject = None
@@ -185,7 +186,7 @@ class SoundNotifier(Node):
         self.destroy_subscription(self.face_identifier_result_image_sub)
 
     @staticmethod
-    def create_sound_from_by_name(name: str) -> simpleaudio.WaveObject:
+    def create_sound_by_name(name: str) -> simpleaudio.WaveObject:
         return simpleaudio.WaveObject.from_wave_file(
             os.path.join(SoundNotifier.SOUND_DIR, name + ".wav")
         )
