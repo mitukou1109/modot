@@ -7,15 +7,12 @@ endif()
 
 find_package(ament_cmake_auto REQUIRED)
 
-find_package(PCL REQUIRED QUIET)
-
 ament_auto_find_build_dependencies()
 
 ament_auto_add_executable(obstacle_detector
   src/obstacle_detector_node.cpp
   src/obstacle_detector.cpp
 )
-target_link_libraries(obstacle_detector ${PCL_LIBRARIES})
 
 install(DIRECTORY config launch rviz yolo_model DESTINATION share/${PROJECT_NAME}/)
 
