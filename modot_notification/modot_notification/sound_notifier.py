@@ -85,7 +85,12 @@ class SoundNotifier(Node):
             self.obstacle_sound_playback is None
             or not self.obstacle_sound_playback.is_playing()
         ):
-            self.play_face_sound_thread.stop()
+            if (
+                self.play_face_sound_thread is not None
+                and self.play_face_sound_thread.is_alive()
+            ):
+                self.play_face_sound_thread.stop()
+
             self.obstacle_sound_playback = self.obstacle_sound.play()
 
     def face_detections_callback(self, msg: vision_msgs.msg.Detection2DArray) -> None:
