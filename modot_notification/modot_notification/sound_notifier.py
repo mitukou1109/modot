@@ -20,15 +20,15 @@ class SoundNotifier(Node):
     def __init__(self) -> None:
         super().__init__("sound_notifier")
 
-        self.obstacle_sound = SoundNotifier.create_sound_from_by_name("obstacle")
+        self.yolo_sounds = SoundNotifier.create_sound_set_by_prefix("yolo")
         self.direction_sounds = SoundNotifier.create_sound_set_by_prefix("direction")
         self.face_sounds = SoundNotifier.create_sound_set_by_prefix("face")
         self.exist_sound = SoundNotifier.create_sound_from_by_name("exist")
 
         self.obstacle_sound_playback: simpleaudio.PlayObject = None
-        self.face_sound_playback: simpleaudio.PlayObject = None
+        self.misc_sound_playback: simpleaudio.PlayObject = None
 
-        self.play_face_sound_thread: StoppableThread = None
+        self.play_misc_sound_thread: StoppableThread = None
         self.face_identifier_result_image_width: int = None
 
         self.declare_parameter("face_front_range", 0.4)
@@ -39,7 +39,13 @@ class SoundNotifier(Node):
             self.obstacle_centroid_callback,
             1,
         )
-        self.face_detection_sub = self.create_subscription(
+        self.yolo_detections_sub = self.create_subscription(
+            vision_msgs.msg.Detection2DArray,
+            "yolo_detector/detections",
+            self.yolo_detections_callback,
+            1,
+        )
+        self.face_detections_sub = self.create_subscription(
             vision_msgs.msg.Detection2DArray,
             "face_identifier/detections",
             self.face_detections_callback,
@@ -52,29 +58,46 @@ class SoundNotifier(Node):
             1,
         )
 
+    def play_yolo_sound(self, ids: list[str]) -> None:
+        index = 0
+        while True:
+            if self.play_misc_sound_thread.stopped():
+                self.misc_sound_playback.stop()
+                break
+            if (
+                self.misc_sound_playback is None
+                or not self.misc_sound_playback.is_playing()
+            ):
+                if index >= len(ids):
+                    break
+                else:
+                    self.misc_sound_playback = self.yolo_sounds[ids[index]].play()
+                    index += 1
+
     def play_face_sound(self, direction: str, ids: list[str]) -> None:
         state = 0
         face_index = 0
         while True:
-            if self.play_face_sound_thread.stopped():
-                self.face_sound_playback.stop()
+            if self.play_misc_sound_thread.stopped():
+                self.misc_sound_playback.stop()
                 break
-            if state == 0:
-                self.face_sound_playback = self.direction_sounds[direction].play()
-                state = 1
-            elif state == 1:
-                if not self.face_sound_playback.is_playing():
-                    self.face_sound_playback = self.face_sounds[ids[face_index]].play()
+            if (
+                self.misc_sound_playback is None
+                or not self.misc_sound_playback.is_playing()
+            ):
+                if state == 0:
+                    self.misc_sound_playback = self.direction_sounds[direction].play()
+                    state = 1
+                elif state == 1:
+                    self.misc_sound_playback = self.face_sounds[ids[face_index]].play()
                     state = 2
-            elif state == 2:
-                if not self.face_sound_playback.is_playing():
+                elif state == 2:
                     face_index += 1
                     state = 3 if face_index >= len(ids) else 1
-            elif state == 3:
-                self.face_sound_playback = self.exist_sound.play()
-                state = 4
-            elif state == 4:
-                if not self.face_sound_playback.is_playing():
+                elif state == 3:
+                    self.misc_sound_playback = self.exist_sound.play()
+                    state = 4
+                elif state == 4:
                     break
 
     def obstacle_centroid_callback(self, msg: geometry_msgs.msg.PointStamped) -> None:
@@ -83,27 +106,52 @@ class SoundNotifier(Node):
             or not self.obstacle_sound_playback.is_playing()
         ):
             if (
-                self.play_face_sound_thread is not None
-                and self.play_face_sound_thread.is_alive()
+                self.play_misc_sound_thread is not None
+                and self.play_misc_sound_thread.is_alive()
             ):
-                self.play_face_sound_thread.stop()
+                self.play_misc_sound_thread.stop()
 
             self.obstacle_sound_playback = self.obstacle_sound.play()
+
+    def yolo_detections_callback(self, msg: vision_msgs.msg.Detection2DArray) -> None:
+        if not msg.detections:
+            return
+
+        if (
+            self.obstacle_sound_playback is not None
+            and self.obstacle_sound_playback.is_playing()
+        ):
+            return
+
+        if (
+            self.play_misc_sound_thread is None
+            or not self.play_misc_sound_thread.is_alive()
+        ):
+            ids = []
+            detection: vision_msgs.msg.Detection2D
+            for detection in msg.detections:
+                if detection.id in self.yolo_sounds.keys():
+                    ids.append(detection.id)
+            if ids:
+                self.play_misc_sound_thread = StoppableThread(
+                    target=self.play_yolo_sound, args=(ids,)
+                )
+                self.play_misc_sound_thread.start()
 
     def face_detections_callback(self, msg: vision_msgs.msg.Detection2DArray) -> None:
         if not msg.detections or not self.face_identifier_result_image_width:
             return
 
         if (
-            self.play_face_sound_thread is None
-            or not self.play_face_sound_thread.is_alive()
+            self.obstacle_sound_playback is not None
+            and self.obstacle_sound_playback.is_playing()
         ):
-            if (
-                self.obstacle_sound_playback is not None
-                and self.obstacle_sound_playback.is_playing()
-            ):
-                self.obstacle_sound_playback.wait_done()
+            return
 
+        if (
+            self.play_misc_sound_thread is None
+            or not self.play_misc_sound_thread.is_alive()
+        ):
             front_range = (
                 self.get_parameter("face_front_range")
                 .get_parameter_value()
@@ -127,10 +175,10 @@ class SoundNotifier(Node):
                         direction = "front"
                 ids.append(detection.id)
             if ids:
-                self.play_face_sound_thread = StoppableThread(
+                self.play_misc_sound_thread = StoppableThread(
                     target=self.play_face_sound, args=(direction, ids)
                 )
-                self.play_face_sound_thread.start()
+                self.play_misc_sound_thread.start()
 
     def face_identifier_result_image_callback(self, msg: sensor_msgs.msg.Image) -> None:
         self.face_identifier_result_image_width = msg.width
