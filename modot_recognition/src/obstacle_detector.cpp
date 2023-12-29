@@ -16,13 +16,13 @@ const std::vector<std::array<uint8_t, 3>> ObstacleDetector::PALETTE = { { { 0, 2
 ObstacleDetector::ObstacleDetector()
   : Node("obstacle_detector")
   , global_frame_("world")
-  , leaf_size_(0.05)
+  , leaf_size_(0.1)
   , sac_threshold_(0.03)
   , plane_segmentation_ratio_(0.3)
   , cluster_tolerance_(0.1)
   , min_cluster_size_(10)
   , max_cluster_size_(10000)
-  , obstacle_range_(2.0)
+  , obstacle_range_(1.0)
 {
   this->declare_parameter("global_frame", global_frame_);
   this->declare_parameter("leaf_size", leaf_size_);
@@ -100,12 +100,12 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
         cloud->header.frame_id = global_frame_;
 
         const auto& ground_plane = *std::min_element(
-          planes.begin(), planes.end(), [cloud](const pcl::PointIndices::Ptr& a, const pcl::PointIndices::Ptr& b) {
-            return getMeanZ(cloud, *a) < getMeanZ(cloud, *b);
-          });
-      extract.setInputCloud(cloud);
-      extract.setIndices(ground_plane);
-      extract.filter(*cloud);
+            planes.begin(), planes.end(), [cloud](const pcl::PointIndices::Ptr& a, const pcl::PointIndices::Ptr& b) {
+              return getMeanZ(cloud, *a) < getMeanZ(cloud, *b);
+            });
+        extract.setInputCloud(cloud);
+        extract.setIndices(ground_plane);
+        extract.filter(*cloud);
       }
       else
       {
@@ -129,36 +129,36 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
 
       if (clusters.size() > 0)
       {
-          auto closest_obstacle = *std::min_element(clusters.begin(), clusters.end(),
-                                                    [cloud](const pcl::PointIndices& a, const pcl::PointIndices& b) {
-                                                      return getMin2DDistance(cloud, a) < getMin2DDistance(cloud, b);
-                                                    });
+        auto closest_obstacle = *std::min_element(clusters.begin(), clusters.end(),
+                                                  [cloud](const pcl::PointIndices& a, const pcl::PointIndices& b) {
+                                                    return getMin2DDistance(cloud, a) < getMin2DDistance(cloud, b);
+                                                  });
 
-          for (const auto& index : closest_obstacle.indices)
+        for (const auto& index : closest_obstacle.indices)
+        {
+          cloud->points[index].r = 255;
+          cloud->points[index].g = 0;
+          cloud->points[index].b = 0;
+        }
+
+        if (getMin2DDistance(cloud, closest_obstacle) < obstacle_range_)
+        {
+          Eigen::Vector4f centroid;
+          if (pcl::compute3DCentroid(*cloud, closest_obstacle, centroid) != 0)
           {
-            cloud->points[index].r = 255;
-            cloud->points[index].g = 0;
-            cloud->points[index].b = 0;
+            geometry_msgs::msg::PointStamped centroid_msg;
+            centroid_msg.header.stamp = msg->header.stamp;
+            centroid_msg.header.frame_id = cloud->header.frame_id;
+            centroid_msg.point.x = centroid[0];
+            centroid_msg.point.y = centroid[1];
+            centroid_msg.point.z = centroid[2];
+            obstacle_centroid_pub_->publish(centroid_msg);
           }
+        }
 
-          if (getMin2DDistance(cloud, closest_obstacle) < obstacle_range_)
-          {
-            Eigen::Vector4f centroid;
-            if (pcl::compute3DCentroid(*cloud, closest_obstacle, centroid) != 0)
-            {
-              geometry_msgs::msg::PointStamped centroid_msg;
-              centroid_msg.header.stamp = msg->header.stamp;
-              centroid_msg.header.frame_id = cloud->header.frame_id;
-              centroid_msg.point.x = centroid[0];
-              centroid_msg.point.y = centroid[1];
-              centroid_msg.point.z = centroid[2];
-              obstacle_centroid_pub_->publish(centroid_msg);
-            }
-          }
-
-          auto cluster_cloud = std::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
-          pcl::copyPointCloud(*cloud, clusters, *cluster_cloud);
-          cloud = cluster_cloud;
+        auto cluster_cloud = std::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
+        pcl::copyPointCloud(*cloud, clusters, *cluster_cloud);
+        cloud = cluster_cloud;
       }
       else
       {
