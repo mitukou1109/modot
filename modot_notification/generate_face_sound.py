@@ -19,11 +19,11 @@ face_image_files = glob.glob(
     recursive=True,
 )
 
-if not face_image_files:
+if any(os.path.isfile(path) for path in face_image_files):
+    print("Input the name of known faces")
+else:
     print("No known face registered")
     exit()
-else:
-    print("Input the name of known faces")
 
 for face_image_file in face_image_files:
     if os.path.isfile(face_image_file):
