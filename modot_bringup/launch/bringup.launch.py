@@ -46,7 +46,7 @@ def generate_launch_description():
 
     realsense_tf_publisher_node = Node(
         package="modot_description",
-        executable="camera_tf_publisher",
+        executable="camera_tf_publisher_node",
         name="realsense_tf_publisher",
         output="screen",
         remappings=[("accel", "/realsense/accel/sample")],
@@ -79,7 +79,7 @@ def generate_launch_description():
 
     obstacle_detector_node = Node(
         package="modot_recognition",
-        executable="obstacle_detector",
+        executable="obstacle_detector_node",
         name="obstacle_detector",
         output="screen",
         remappings=[("point_cloud", "/realsense/depth/color/points")],

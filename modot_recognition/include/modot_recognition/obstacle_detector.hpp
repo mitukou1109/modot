@@ -11,10 +11,15 @@
 
 #include "modot_lib/parameter_updater.hpp"
 
+namespace modot_recognition
+{
 class ObstacleDetector : public rclcpp::Node
 {
 public:
-  ObstacleDetector();
+  explicit ObstacleDetector(const rclcpp::NodeOptions& node_options = rclcpp::NodeOptions());
+
+  ObstacleDetector(const std::string& node_name, const std::string& ns,
+                   const rclcpp::NodeOptions& node_options = rclcpp::NodeOptions());
 
 private:
   static const std::vector<std::array<uint8_t, 3>> PALETTE;
@@ -46,3 +51,4 @@ private:
   uint32_t max_cluster_size_;
   double obstacle_range_;
 };
+}  // namespace modot_recognition

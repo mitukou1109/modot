@@ -1,5 +1,6 @@
 #include "modot_recognition/obstacle_detector.hpp"
 
+#include <rclcpp_components/register_node_macro.hpp>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/segmentation/extract_clusters.h>
@@ -9,12 +10,20 @@
 
 using namespace std::placeholders;
 
+namespace modot_recognition
+{
 const std::vector<std::array<uint8_t, 3>> ObstacleDetector::PALETTE = { { { 0, 255, 0 } },   { { 0, 0, 255 } },
                                                                         { { 255, 255, 0 } }, { { 255, 0, 255 } },
                                                                         { { 0, 255, 255 } }, { { 255, 255, 255 } } };
 
-ObstacleDetector::ObstacleDetector()
-  : Node("obstacle_detector")
+ObstacleDetector::ObstacleDetector(const rclcpp::NodeOptions& node_options)
+  : ObstacleDetector("obstacle_detector", "", node_options)
+{
+}
+
+ObstacleDetector::ObstacleDetector(const std::string& node_name, const std::string& ns,
+                                   const rclcpp::NodeOptions& node_options)
+  : Node(node_name, ns, node_options)
   , global_frame_("world")
   , leaf_size_(0.1)
   , sac_threshold_(0.03)
@@ -196,3 +205,6 @@ double ObstacleDetector::getMin2DDistance(const pcl::PointCloud<pcl::PointXYZRGB
       });
   return std::hypot(cloud->points[closest_index].x, cloud->points[closest_index].y);
 }
+}  // namespace modot_recognition
+
+RCLCPP_COMPONENTS_REGISTER_NODE(modot_recognition::ObstacleDetector)

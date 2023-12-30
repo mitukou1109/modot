@@ -1,11 +1,20 @@
 #include "modot_description/camera_tf_publisher.hpp"
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 
 using namespace std::placeholders;
 
-CameraTFPublisher::CameraTFPublisher()
-  : Node("tf_publisher")
+namespace modot_description
+{
+CameraTFPublisher::CameraTFPublisher(const rclcpp::NodeOptions& node_options)
+  : CameraTFPublisher("camera_tf_publisher", "", node_options)
+{
+}
+
+CameraTFPublisher::CameraTFPublisher(const std::string& node_name, const std::string& ns,
+                                     const rclcpp::NodeOptions& node_options)
+  : Node(node_name, ns, node_options)
   , global_frame_("world")
   , camera_frame_("camera_link")
   , imu_frame_("imu_link")
@@ -76,3 +85,6 @@ void CameraTFPublisher::accelCallback(const sensor_msgs::msg::Imu::SharedPtr msg
   tf2::toMsg(global_to_camera_tf, global_to_camera_tf_msg.transform);
   tf_broadcaster_->sendTransform(global_to_camera_tf_msg);
 }
+}  // namespace modot_description
+
+RCLCPP_COMPONENTS_REGISTER_NODE(modot_description::CameraTFPublisher)

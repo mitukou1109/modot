@@ -13,10 +13,14 @@ find_package(PCL REQUIRED QUIET)
 
 ament_auto_find_build_dependencies()
 
-ament_auto_add_executable(obstacle_detector
-  src/obstacle_detector_node.cpp
+ament_auto_add_library(${PROJECT_NAME} SHARED
   src/obstacle_detector.cpp
 )
-target_link_libraries(obstacle_detector ${PCL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${PCL_LIBRARIES})
+
+rclcpp_components_register_node(${PROJECT_NAME}
+  PLUGIN "modot_recognition::ObstacleDetector"
+  EXECUTABLE obstacle_detector_node
+)
 
 ament_auto_package()

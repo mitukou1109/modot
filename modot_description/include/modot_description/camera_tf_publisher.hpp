@@ -8,10 +8,15 @@
 
 #include "modot_lib/parameter_updater.hpp"
 
+namespace modot_description
+{
 class CameraTFPublisher : public rclcpp::Node
 {
 public:
-  CameraTFPublisher();
+  explicit CameraTFPublisher(const rclcpp::NodeOptions& node_options = rclcpp::NodeOptions());
+
+  CameraTFPublisher(const std::string& node_name, const std::string& ns,
+                    const rclcpp::NodeOptions& node_options = rclcpp::NodeOptions());
 
 private:
   void accelCallback(const sensor_msgs::msg::Imu::SharedPtr msg);
@@ -31,3 +36,4 @@ private:
   tf2::Vector3 camera_position_;
   double lpf_factor_;
 };
+}  // namespace modot_description
