@@ -20,6 +20,14 @@ def generate_launch_description():
         ]
     )
 
+    realsense_tf_publisher_config_file = PathJoinSubstitution(
+        [
+            modot_bringup_share_dir,
+            "config",
+            "realsense_tf_publisher.yaml",
+        ]
+    )
+
     yolo_model = PathJoinSubstitution(
         [
             modot_bringup_share_dir,
@@ -50,15 +58,7 @@ def generate_launch_description():
         name="realsense_tf_publisher",
         output="screen",
         remappings=[("accel", "/realsense/accel/sample")],
-        parameters=[
-            {
-                "camera_frame": "realsense_link",
-                "imu_frame": "realsense_accel_optical_frame",
-                "camera_x": 0.1,
-                "camera_y": -0.1,
-                "camera_z": 1.5,
-            }
-        ],
+        parameters=[realsense_tf_publisher_config_file],
     )
 
     yolo_detector_node = Node(
