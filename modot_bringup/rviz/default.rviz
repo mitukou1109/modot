@@ -23,7 +23,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: ObstacleClusters
 Visualization Manager:
   Class: ""
   Displays:
@@ -114,7 +114,7 @@ Visualization Manager:
         Durability Policy: Volatile
         Filter size: 10
         History Policy: Keep Last
-        Reliability Policy: Reliable
+        Reliability Policy: Best Effort
         Value: /realsense/depth/color/points
       Use Fixed Frame: true
       Use rainbow: true
@@ -296,7 +296,7 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1822
-  X: -1
-  Y: -7
+  X: 17
+  Y: 31
   YOLODetectorResult:
     collapsed: false

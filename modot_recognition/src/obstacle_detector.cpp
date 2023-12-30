@@ -21,7 +21,7 @@ ObstacleDetector::ObstacleDetector()
   , plane_segmentation_ratio_(0.3)
   , cluster_tolerance_(0.1)
   , min_cluster_size_(10)
-  , max_cluster_size_(10000)
+  , max_cluster_size_(1000)
   , obstacle_range_(1.0)
 {
   this->declare_parameter("global_frame", global_frame_);
