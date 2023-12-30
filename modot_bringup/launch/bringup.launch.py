@@ -7,12 +7,13 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
+    modot_bringup_share_dir = get_package_share_directory("modot_bringup")
     modot_recognition_share_dir = get_package_share_directory("modot_recognition")
     realsense2_camera_share_dir = get_package_share_directory("realsense2_camera")
 
     realsense_config_file = PathJoinSubstitution(
         [
-            modot_recognition_share_dir,
+            modot_bringup_share_dir,
             "config",
             "realsense2_camera",
             "realsense.yaml",
@@ -21,7 +22,7 @@ def generate_launch_description():
 
     yolo_model = PathJoinSubstitution(
         [
-            modot_recognition_share_dir,
+            modot_bringup_share_dir,
             "yolo_model",
             "vidvipo_yolov8n_2023-05-19_full_integer_quant_edgetpu.tflite",
         ]
@@ -69,10 +70,9 @@ def generate_launch_description():
         parameters=[
             {
                 "yolo_model": yolo_model,
-                "source_subimage_size": 600,
                 "model_conf_threshold": 0.3,
                 "model_iou_threshold": 0.5,
-                "model_image_size": 416,
+                "model_image_size": "416",
             }
         ],
     )
@@ -106,9 +106,7 @@ def generate_launch_description():
         name="rviz2",
         arguments=[
             "-d",
-            PathJoinSubstitution(
-                [modot_recognition_share_dir, "rviz", "recognition.rviz"]
-            ),
+            PathJoinSubstitution([modot_bringup_share_dir, "rviz", "default.rviz"]),
         ],
     )
 
