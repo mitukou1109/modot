@@ -21,7 +21,8 @@ private:
 
   void pointCloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
 
-  static double getMeanZ(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cloud, const pcl::PointIndices& indices);
+  static std::pair<Eigen::Vector4f, bool> getCentroid(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cloud,
+                                                      const pcl::PointIndices& indices);
 
   static double getMin2DDistance(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cloud,
                                  const pcl::PointIndices& indices);

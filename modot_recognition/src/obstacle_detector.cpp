@@ -101,7 +101,7 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
 
         const auto& ground_plane = *std::min_element(
             planes.begin(), planes.end(), [cloud](const pcl::PointIndices::Ptr& a, const pcl::PointIndices::Ptr& b) {
-              return getMeanZ(cloud, *a) < getMeanZ(cloud, *b);
+              return getCentroid(cloud, *a).first[2] < getCentroid(cloud, *b).first[2];
             });
         extract.setInputCloud(cloud);
         extract.setIndices(ground_plane);
@@ -143,15 +143,14 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
 
         if (getMin2DDistance(cloud, closest_obstacle) < obstacle_range_)
         {
-          Eigen::Vector4f centroid;
-          if (pcl::compute3DCentroid(*cloud, closest_obstacle, centroid) != 0)
+          if (const auto& [centroid, valid] = getCentroid(cloud, closest_obstacle); valid)
           {
             geometry_msgs::msg::PointStamped centroid_msg;
             centroid_msg.header.stamp = msg->header.stamp;
             centroid_msg.header.frame_id = cloud->header.frame_id;
-            centroid_msg.point.x = centroid[0];
-            centroid_msg.point.y = centroid[1];
-            centroid_msg.point.z = centroid[2];
+            centroid_msg.point.x = centroid.x();
+            centroid_msg.point.y = centroid.y();
+            centroid_msg.point.z = centroid.z();
             obstacle_centroid_pub_->publish(centroid_msg);
           }
         }
@@ -180,12 +179,12 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
   point_cloud_pub_->publish(cloud_msg);
 }
 
-double ObstacleDetector::getMeanZ(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cloud,
-                                  const pcl::PointIndices& indices)
+std::pair<Eigen::Vector4f, bool> ObstacleDetector::getCentroid(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cloud,
+                                                               const pcl::PointIndices& indices)
 {
-  return std::accumulate(indices.indices.begin(), indices.indices.end(), 0.0,
-                         [cloud](double sum, const std::size_t& index) { return sum + cloud->points[index].z; }) /
-         indices.indices.size();
+  Eigen::Vector4f centroid;
+  bool valid = pcl::compute3DCentroid(*cloud, indices, centroid) != 0;
+  return { centroid, valid };
 }
 
 double ObstacleDetector::getMin2DDistance(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cloud,
