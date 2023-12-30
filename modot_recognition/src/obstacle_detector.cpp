@@ -63,7 +63,7 @@ ObstacleDetector::ObstacleDetector(const std::string& node_name, const std::stri
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 }
 
-void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
+void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::UniquePtr msg)
 {
   auto cloud = std::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
   pcl::fromROSMsg(*msg, *cloud);

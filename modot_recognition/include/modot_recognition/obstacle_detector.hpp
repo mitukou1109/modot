@@ -24,7 +24,7 @@ public:
 private:
   static const std::vector<std::array<uint8_t, 3>> PALETTE;
 
-  void pointCloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
+  void pointCloudCallback(const sensor_msgs::msg::PointCloud2::UniquePtr msg);
 
   static std::pair<Eigen::Vector4f, bool> getCentroid(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cloud,
                                                       const pcl::PointIndices& indices);
