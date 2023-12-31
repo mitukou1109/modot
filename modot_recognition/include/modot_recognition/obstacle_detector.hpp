@@ -26,10 +26,10 @@ private:
 
   void pointCloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
 
-  static std::pair<Eigen::Vector4f, bool> getCentroid(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cloud,
+  static std::pair<Eigen::Vector4f, bool> getCentroid(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud,
                                                       const pcl::PointIndices& indices);
 
-  static double getMin2DDistance(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cloud,
+  static double getMin2DDistance(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud,
                                  const pcl::PointIndices& indices);
 
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr point_cloud_pub_;

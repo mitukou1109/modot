@@ -48,6 +48,8 @@ def generate_launch_description():
             "enable_sync": "true",
             "enable_accel": "true",
             "pointcloud.enable": "true",
+            "pointcloud.stream_filter": "-1",
+            "pointcloud.stream_index_filter": "-1",
             "config_file": realsense_config_file,
         }.items(),
     )

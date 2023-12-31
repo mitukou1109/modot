@@ -65,17 +65,17 @@ ObstacleDetector::ObstacleDetector(const std::string& node_name, const std::stri
 
 void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
 {
-  auto cloud = std::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
+  auto cloud = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
   pcl::fromROSMsg(*msg, *cloud);
 
   if (cloud->width >= 3)
   {
-    pcl::VoxelGrid<pcl::PointXYZRGB> voxel_grid;
+    pcl::VoxelGrid<pcl::PointXYZ> voxel_grid;
     voxel_grid.setInputCloud(cloud);
     voxel_grid.setLeafSize(leaf_size_, leaf_size_, leaf_size_);
     voxel_grid.filter(*cloud);
 
-    pcl::SACSegmentation<pcl::PointXYZRGB> seg;
+    pcl::SACSegmentation<pcl::PointXYZ> seg;
     seg.setOptimizeCoefficients(true);
     seg.setModelType(pcl::SACMODEL_PLANE);
     seg.setMethodType(pcl::SAC_RANSAC);
@@ -83,10 +83,10 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
 
     std::vector<pcl::PointIndices::Ptr> planes;
     auto coefficients = std::make_shared<pcl::ModelCoefficients>();
-    auto segmented_cloud = std::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
+    auto segmented_cloud = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
     pcl::copyPointCloud(*cloud, *segmented_cloud);
 
-    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+    pcl::ExtractIndices<pcl::PointXYZ> extract;
     extract.setNegative(true);
 
     while (segmented_cloud->width >= plane_segmentation_ratio_ * cloud->width)
@@ -124,10 +124,10 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
 
     if (cloud->width >= min_cluster_size_)
     {
-      auto tree = std::make_shared<pcl::search::KdTree<pcl::PointXYZRGB>>();
+      auto tree = std::make_shared<pcl::search::KdTree<pcl::PointXYZ>>();
       tree->setInputCloud(cloud);
 
-      pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ece;
+      pcl::EuclideanClusterExtraction<pcl::PointXYZ> ece;
       std::vector<pcl::PointIndices> clusters;
       ece.setClusterTolerance(cluster_tolerance_);
       ece.setMinClusterSize(min_cluster_size_);
@@ -143,13 +143,6 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
                                                     return getMin2DDistance(cloud, a) < getMin2DDistance(cloud, b);
                                                   });
 
-        for (const auto& index : closest_obstacle.indices)
-        {
-          cloud->points[index].r = 255;
-          cloud->points[index].g = 0;
-          cloud->points[index].b = 0;
-        }
-
         if (getMin2DDistance(cloud, closest_obstacle) < obstacle_range_)
         {
           if (const auto& [centroid, valid] = getCentroid(cloud, closest_obstacle); valid)
@@ -164,9 +157,9 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
           }
         }
 
-        auto cluster_cloud = std::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
-        pcl::copyPointCloud(*cloud, clusters, *cluster_cloud);
-        cloud = cluster_cloud;
+        auto closest_obstacle_cloud = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+        pcl::copyPointCloud(*cloud, closest_obstacle, *closest_obstacle_cloud);
+        cloud = closest_obstacle_cloud;
       }
       else
       {
@@ -188,7 +181,7 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::S
   point_cloud_pub_->publish(cloud_msg);
 }
 
-std::pair<Eigen::Vector4f, bool> ObstacleDetector::getCentroid(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cloud,
+std::pair<Eigen::Vector4f, bool> ObstacleDetector::getCentroid(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud,
                                                                const pcl::PointIndices& indices)
 {
   Eigen::Vector4f centroid;
@@ -196,7 +189,7 @@ std::pair<Eigen::Vector4f, bool> ObstacleDetector::getCentroid(const pcl::PointC
   return { centroid, valid };
 }
 
-double ObstacleDetector::getMin2DDistance(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cloud,
+double ObstacleDetector::getMin2DDistance(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud,
                                           const pcl::PointIndices& indices)
 {
   auto closest_index = *std::min_element(
