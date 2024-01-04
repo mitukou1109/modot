@@ -50,6 +50,7 @@ def generate_launch_description():
             "pointcloud.enable": "true",
             "pointcloud.stream_filter": "-1",
             "pointcloud.stream_index_filter": "-1",
+            "log_level": "warn",
             "config_file": realsense_config_file,
         }.items(),
     )

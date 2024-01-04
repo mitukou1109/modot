@@ -60,6 +60,8 @@ ObstacleDetector::ObstacleDetector(const std::string& node_name, const std::stri
   parameter_updater_->addParameter("max_cluster_size", max_cluster_size_);
   parameter_updater_->addParameter("obstacle_range", obstacle_range_);
 
+  pcl::console::setVerbosityLevel(pcl::console::VERBOSITY_LEVEL::L_ALWAYS);
+
   point_cloud_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("~/point_cloud", 10);
   obstacle_centroid_pub_ = this->create_publisher<geometry_msgs::msg::PointStamped>("~/obstacle_centroid", 1);
   point_cloud_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
