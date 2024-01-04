@@ -22,15 +22,14 @@ public:
                    const rclcpp::NodeOptions& node_options = rclcpp::NodeOptions());
 
 private:
-  static const std::vector<std::array<uint8_t, 3>> PALETTE;
-
   void pointCloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
 
-  static std::pair<Eigen::Vector4f, bool> getCentroid(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud,
-                                                      const pcl::PointIndices& indices);
+  void publishEmptyPointCloud(const rclcpp::Time& stamp);
 
-  static double getMin2DDistance(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud,
-                                 const pcl::PointIndices& indices);
+  std::pair<Eigen::Vector4f, bool> getCentroid(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud,
+                                               const pcl::PointIndices& indices);
+
+  double getMin2DDistance(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud, const pcl::PointIndices& indices);
 
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr point_cloud_pub_;
   rclcpp::Publisher<geometry_msgs::msg::PointStamped>::SharedPtr obstacle_centroid_pub_;
@@ -44,8 +43,12 @@ private:
 
   std::string global_frame_;
   double leaf_size_;
-  double sac_threshold_;
-  double plane_segmentation_ratio_;
+  double sac_distance_threshold_;
+  int sac_max_iterations_;
+  double sac_eps_angle_;
+  int sac_trials_;
+  uint32_t min_plane_inliers_;
+  double ground_plane_tolerance_;
   double cluster_tolerance_;
   uint32_t min_cluster_size_;
   uint32_t max_cluster_size_;
