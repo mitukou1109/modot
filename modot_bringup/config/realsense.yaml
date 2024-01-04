@@ -1,0 +1,12 @@
+realsense:
+  ros__parameters:
+    camera_name: realsense
+    enable_infra1: false
+    enable_infra2: false
+    enable_gyro: false
+    enable_accel: true
+    pointcloud.enable: true
+    accel_qos: SENSOR_DATA
+    color_qos: SENSOR_DATA
+    depth_qos: SENSOR_DATA
+    pointcloud.pointcloud_qos: SENSOR_DATA

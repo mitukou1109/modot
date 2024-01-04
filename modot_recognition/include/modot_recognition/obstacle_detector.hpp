@@ -22,7 +22,7 @@ public:
                    const rclcpp::NodeOptions& node_options = rclcpp::NodeOptions());
 
 private:
-  void pointCloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
+  void pointCloudCallback(const sensor_msgs::msg::PointCloud2::UniquePtr msg);
 
   void publishEmptyPointCloud(const rclcpp::Time& stamp);
 
