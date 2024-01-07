@@ -20,6 +20,7 @@ ObstacleDetector::ObstacleDetector(const rclcpp::NodeOptions& node_options)
 ObstacleDetector::ObstacleDetector(const std::string& node_name, const std::string& ns,
                                    const rclcpp::NodeOptions& node_options)
   : Node(node_name, ns, node_options)
+  , obstacle_detected_(false)
   , global_frame_("world")
   , leaf_size_(0.1)
   , sac_distance_threshold_(0.03)
@@ -63,9 +64,13 @@ ObstacleDetector::ObstacleDetector(const std::string& node_name, const std::stri
   pcl::console::setVerbosityLevel(pcl::console::VERBOSITY_LEVEL::L_ALWAYS);
 
   point_cloud_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("~/point_cloud", 10);
+  obstacle_detected_pub_ = this->create_publisher<std_msgs::msg::Bool>("~/detected", 1);
   obstacle_centroid_pub_ = this->create_publisher<geometry_msgs::msg::PointStamped>("~/obstacle_centroid", 1);
   point_cloud_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
       "point_cloud", rclcpp::SensorDataQoS(), std::bind(&ObstacleDetector::pointCloudCallback, this, _1));
+
+  obstacle_detected_publish_timer_ = this->create_wall_timer(
+      std::chrono::milliseconds(500), std::bind(&ObstacleDetector::obstacleDetectedPublishTimerCallback, this));
 
   tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
@@ -186,7 +191,8 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::U
                                               return getMin2DDistance(cloud, a) < getMin2DDistance(cloud, b);
                                             });
 
-  if (getMin2DDistance(cloud, closest_obstacle) <= obstacle_range_)
+  obstacle_detected_ = getMin2DDistance(cloud, closest_obstacle) <= obstacle_range_;
+  if (obstacle_detected_)
   {
     if (const auto& [centroid, valid] = getCentroid(cloud, closest_obstacle); valid)
     {
@@ -207,6 +213,13 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::U
   sensor_msgs::msg::PointCloud2 cloud_msg;
   pcl::toROSMsg(*cloud, cloud_msg);
   point_cloud_pub_->publish(cloud_msg);
+}
+
+void ObstacleDetector::obstacleDetectedPublishTimerCallback()
+{
+  std_msgs::msg::Bool obstacle_detected_msg;
+  obstacle_detected_msg.data = obstacle_detected_;
+  obstacle_detected_pub_->publish(obstacle_detected_msg);
 }
 
 void ObstacleDetector::publishEmptyPointCloud(const rclcpp::Time& stamp)

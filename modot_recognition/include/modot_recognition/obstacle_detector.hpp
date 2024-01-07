@@ -6,6 +6,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/point_stamped.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
+#include <std_msgs/msg/bool.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
@@ -24,6 +25,8 @@ public:
 private:
   void pointCloudCallback(const sensor_msgs::msg::PointCloud2::UniquePtr msg);
 
+  void obstacleDetectedPublishTimerCallback();
+
   void publishEmptyPointCloud(const rclcpp::Time& stamp);
 
   std::pair<Eigen::Vector4f, bool> getCentroid(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud,
@@ -32,14 +35,19 @@ private:
   double getMin2DDistance(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud, const pcl::PointIndices& indices);
 
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr point_cloud_pub_;
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr obstacle_detected_pub_;
   rclcpp::Publisher<geometry_msgs::msg::PointStamped>::SharedPtr obstacle_centroid_pub_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr point_cloud_sub_;
+
+  rclcpp::TimerBase::SharedPtr obstacle_detected_publish_timer_;
 
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
   std::shared_ptr<rclcpp::ParameterEventHandler> parameter_event_handler_;
   std::unique_ptr<modot_lib::ParameterUpdater> parameter_updater_;
+
+  bool obstacle_detected_;
 
   std::string global_frame_;
   double leaf_size_;

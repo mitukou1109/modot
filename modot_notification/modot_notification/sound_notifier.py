@@ -1,11 +1,11 @@
 import glob
 import os
 
-import geometry_msgs.msg
 import rclpy
 import rclpy.logging
 import sensor_msgs.msg
 import simpleaudio
+import std_msgs.msg
 import vision_msgs.msg
 from ament_index_python.packages import get_package_share_directory
 from modot_lib.stoppable_thread import StoppableThread
@@ -34,10 +34,10 @@ class SoundNotifier(Node):
 
         self.declare_parameter("face_front_range", 0.4)
 
-        self.obstacle_centroid_sub = self.create_subscription(
-            geometry_msgs.msg.PointStamped,
-            "obstacle_detector/obstacle_centroid",
-            self.obstacle_centroid_callback,
+        self.obstacle_detected_sub = self.create_subscription(
+            std_msgs.msg.Bool,
+            "obstacle_detector/detected",
+            self.obstacle_detected_callback,
             1,
         )
         self.yolo_detections_sub = self.create_subscription(
@@ -101,18 +101,19 @@ class SoundNotifier(Node):
                 elif state == 4:
                     break
 
-    def obstacle_centroid_callback(self, msg: geometry_msgs.msg.PointStamped) -> None:
-        if (
-            self.obstacle_sound_playback is None
-            or not self.obstacle_sound_playback.is_playing()
-        ):
+    def obstacle_detected_callback(self, msg: std_msgs.msg.Bool) -> None:
+        if msg.data:
             if (
-                self.play_misc_sound_thread is not None
-                and self.play_misc_sound_thread.is_alive()
+                self.obstacle_sound_playback is None
+                or not self.obstacle_sound_playback.is_playing()
             ):
-                self.play_misc_sound_thread.stop()
+                if (
+                    self.play_misc_sound_thread is not None
+                    and self.play_misc_sound_thread.is_alive()
+                ):
+                    self.play_misc_sound_thread.stop()
 
-            self.obstacle_sound_playback = self.obstacle_sound.play()
+                self.obstacle_sound_playback = self.obstacle_sound.play()
 
     def yolo_detections_callback(self, msg: vision_msgs.msg.Detection2DArray) -> None:
         if not msg.detections:
