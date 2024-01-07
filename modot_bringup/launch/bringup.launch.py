@@ -97,6 +97,14 @@ def generate_launch_description():
         output="screen",
     )
 
+    micro_ros_agent_node = Node(
+        package="micro_ros_agent",
+        executable="micro_ros_agent",
+        name="micro_ros_agent",
+        output="screen",
+        arguments=["serial", "--dev", "/dev/ttyUSB0", "--baud", "115200"],
+    )
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -114,6 +122,7 @@ def generate_launch_description():
             yolo_detector_node,
             face_identifier_node,
             sound_notifier_node,
+            micro_ros_agent_node,
             rviz_node,
         ]
     )
