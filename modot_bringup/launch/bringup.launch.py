@@ -66,12 +66,20 @@ def generate_launch_description():
         parameters=[realsense_tf_publisher_config_file],
     )
 
+    v4l2_camera_node = Node(
+        package="v4l2_camera",
+        executable="v4l2_camera_node",
+        name="v4l2_camera",
+        remappings=[("image_raw", "/camera/image_raw")],
+        parameters=[{"video_device": "/dev/modot_camera"}],
+    )
+
     yolo_detector_node = Node(
         package="ultralytics_ros",
         executable="detector",
         name="yolo_detector",
         output="screen",
-        remappings=[("image_raw", "/realsense/color/image_raw")],
+        remappings=[("image_raw", "/camera/image_raw")],
         parameters=[
             {
                 "yolo_model": yolo_model,
@@ -87,7 +95,7 @@ def generate_launch_description():
         executable="face_identifier",
         name="face_identifier",
         output="screen",
-        remappings=[("image_raw", "/realsense/color/image_raw")],
+        remappings=[("image_raw", "/camera/image_raw")],
     )
 
     sound_notifier_node = Node(
@@ -119,6 +127,7 @@ def generate_launch_description():
         [
             realsense_container,
             realsense_tf_publisher_node,
+            v4l2_camera_node,
             yolo_detector_node,
             face_identifier_node,
             sound_notifier_node,
