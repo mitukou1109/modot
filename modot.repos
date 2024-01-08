@@ -1,0 +1,21 @@
+repositories:
+  face_recognition_ros:
+    type: git
+    url: https://github.com/mitukou1109/face_recognition_ros.git
+    version: master
+  micro_ros_setup:
+    type: git
+    url: https://github.com/micro-ROS/micro_ros_setup.git
+    version: humble
+  modot:
+    type: git
+    url: https://github.com/mitukou1109/modot.git
+    version: master
+  realsense-ros:
+    type: git
+    url: https://github.com/IntelRealSense/realsense-ros.git
+    version: ros2-development
+  ultralytics_ros:
+    type: git
+    url: https://github.com/mitukou1109/ultralytics_ros.git
+    version: master
