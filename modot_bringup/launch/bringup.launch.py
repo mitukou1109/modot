@@ -142,6 +142,12 @@ def generate_launch_description():
         ],
     )
 
+    rqt_reconfigure_node = Node(
+        package="rqt_reconfigure",
+        executable="rqt_reconfigure",
+        name="rqt_reconfigure",
+    )
+
     return LaunchDescription(
         [
             realsense_container,
@@ -153,5 +159,6 @@ def generate_launch_description():
             sound_notifier_node,
             micro_ros_agent_node,
             rviz_node,
+            rqt_reconfigure_node,
         ]
     )
