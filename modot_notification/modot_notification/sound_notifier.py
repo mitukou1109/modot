@@ -32,6 +32,9 @@ class SoundNotifier(Node):
         self.play_misc_sound_thread: StoppableThread = None
         self.face_identifier_result_image_width: int = None
 
+        self.declare_parameter("enable_obstacle_notification", True)
+        self.declare_parameter("enable_yolo_notification", True)
+        self.declare_parameter("enable_face_notification", True)
         self.declare_parameter("face_front_range", 0.4)
 
         self.obstacle_detected_sub = self.create_subscription(
@@ -102,6 +105,13 @@ class SoundNotifier(Node):
                     break
 
     def obstacle_detected_callback(self, msg: std_msgs.msg.Bool) -> None:
+        if (
+            not self.get_parameter("enable_obstacle_notification")
+            .get_parameter_value()
+            .bool_value
+        ):
+            return
+
         if msg.data:
             if (
                 self.obstacle_sound_playback is None
@@ -116,6 +126,13 @@ class SoundNotifier(Node):
                 self.obstacle_sound_playback = self.obstacle_sound.play()
 
     def yolo_detections_callback(self, msg: vision_msgs.msg.Detection2DArray) -> None:
+        if (
+            not self.get_parameter("enable_yolo_notification")
+            .get_parameter_value()
+            .bool_value
+        ):
+            return
+
         if not msg.detections:
             return
 
@@ -141,6 +158,13 @@ class SoundNotifier(Node):
                 self.play_misc_sound_thread.start()
 
     def face_detections_callback(self, msg: vision_msgs.msg.Detection2DArray) -> None:
+        if (
+            not self.get_parameter("enable_face_notification")
+            .get_parameter_value()
+            .bool_value
+        ):
+            return
+
         if not msg.detections or not self.face_identifier_result_image_width:
             return
 
