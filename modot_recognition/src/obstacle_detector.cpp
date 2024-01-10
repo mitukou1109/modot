@@ -70,7 +70,7 @@ ObstacleDetector::ObstacleDetector(const std::string& node_name, const std::stri
       "point_cloud", rclcpp::SensorDataQoS(), std::bind(&ObstacleDetector::pointCloudCallback, this, _1));
 
   obstacle_detected_publish_timer_ = this->create_wall_timer(
-      std::chrono::milliseconds(500), std::bind(&ObstacleDetector::obstacleDetectedPublishTimerCallback, this));
+      std::chrono::milliseconds(1000), std::bind(&ObstacleDetector::obstacleDetectedPublishTimerCallback, this));
 
   tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
