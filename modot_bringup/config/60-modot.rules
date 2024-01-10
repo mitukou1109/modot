@@ -1,2 +1,2 @@
-KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", SUBSYSTEMS=="usb", ATTRS{idVendor}=="090c", ATTRS{idProduct}=="037c", GROUP="video", MODE="0666", SYMLINK+="modot_camera"
+KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", SUBSYSTEMS=="usb", ATTRS{idVendor}=="090c", ATTRS{idProduct}=="037c", ATTR{index}=="0" GROUP="video", MODE="0666", SYMLINK+="modot_camera"
 KERNEL=="ttyUSB[0-9]*", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", GROUP="dialout", MODE="0666", SYMLINK+="modot_nodemcu"
