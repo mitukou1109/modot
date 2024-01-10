@@ -18,4 +18,4 @@ repositories:
   ultralytics_ros:
     type: git
     url: https://github.com/mitukou1109/ultralytics_ros.git
-    version: master
+    version: multiple_image_topics

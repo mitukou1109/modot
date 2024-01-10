@@ -32,6 +32,14 @@ def generate_launch_description():
         ]
     )
 
+    yolo_detector_config_file = PathJoinSubstitution(
+        [
+            modot_bringup_share_dir,
+            "config",
+            "yolo_detector.yaml",
+        ]
+    )
+
     yolo_model = PathJoinSubstitution(
         [
             modot_bringup_share_dir,
@@ -98,15 +106,7 @@ def generate_launch_description():
         executable="detector",
         name="yolo_detector",
         output="screen",
-        remappings=[("image_raw", "/camera/image_rotated")],
-        parameters=[
-            {
-                "yolo_model": yolo_model,
-                "model_conf_threshold": 0.3,
-                "model_iou_threshold": 0.5,
-                "model_image_size": "416",
-            }
-        ],
+        parameters=[{"yolo_model": yolo_model}, yolo_detector_config_file],
     )
 
     face_identifier_node = Node(
