@@ -32,9 +32,9 @@ class SoundNotifier(Node):
         self.play_misc_sound_thread: StoppableThread = None
         self.face_identifier_result_image_width: int = None
 
-        self.declare_parameter("enable_obstacle_notification", True)
-        self.declare_parameter("enable_yolo_notification", True)
-        self.declare_parameter("enable_face_notification", True)
+        self.declare_parameter("enable_obstacle_notification", False)
+        self.declare_parameter("enable_yolo_notification", False)
+        self.declare_parameter("enable_face_notification", False)
         self.declare_parameter("face_front_range", 0.4)
 
         self.obstacle_detected_sub = self.create_subscription(
