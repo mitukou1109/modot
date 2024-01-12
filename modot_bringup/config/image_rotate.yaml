@@ -6,4 +6,4 @@ image_rotate:
     target_z: 0.0
     source_x: 0.0
     source_y: 1.0
-    source_z: 1.0
+    source_z: 0.0
