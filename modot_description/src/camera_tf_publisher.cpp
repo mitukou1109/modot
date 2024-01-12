@@ -18,24 +18,25 @@ CameraTFPublisher::CameraTFPublisher(const std::string& node_name, const std::st
   , global_frame_("world")
   , camera_frame_("camera_link")
   , imu_frame_("imu_link")
-  , camera_position_(0, 0, 0)
   , lpf_factor_(0.8)
 {
   this->declare_parameter("global_frame", global_frame_);
   this->declare_parameter("camera_frame", camera_frame_);
   this->declare_parameter("imu_frame", imu_frame_);
   this->declare_parameter("lpf_factor", lpf_factor_);
-  this->declare_parameter("camera_x", camera_position_[0]);
-  this->declare_parameter("camera_y", camera_position_[1]);
-  this->declare_parameter("camera_z", camera_position_[2]);
+  this->declare_parameter("camera_x", camera_offset_.getOrigin()[0]);
+  this->declare_parameter("camera_y", camera_offset_.getOrigin()[1]);
+  this->declare_parameter("camera_z", camera_offset_.getOrigin()[2]);
 
   this->get_parameter("global_frame", global_frame_);
   this->get_parameter("camera_frame", camera_frame_);
   this->get_parameter("imu_frame", imu_frame_);
   this->get_parameter("lpf_factor", lpf_factor_);
-  this->get_parameter("camera_x", camera_position_[0]);
-  this->get_parameter("camera_y", camera_position_[1]);
-  this->get_parameter("camera_z", camera_position_[2]);
+  this->get_parameter("camera_x", camera_offset_.getOrigin()[0]);
+  this->get_parameter("camera_y", camera_offset_.getOrigin()[1]);
+  this->get_parameter("camera_z", camera_offset_.getOrigin()[2]);
+
+  camera_offset_.getBasis().setRPY(0, 0, -M_PI_2);
 
   parameter_event_handler_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
   parameter_updater_ = std::make_unique<modot_lib::ParameterUpdater>(parameter_event_handler_);
@@ -71,12 +72,10 @@ void CameraTFPublisher::accelCallback(const sensor_msgs::msg::Imu::SharedPtr msg
   auto gravity = lpf_factor_ * accel_prev + (1.0 - lpf_factor_) * accel;
   accel_prev = accel;
 
-  tf2::Quaternion global_to_imu_quat;
-  global_to_imu_quat.setEuler(std::atan2(-gravity.y(), gravity.z()), 0, -M_PI_2);
-  // global_to_imu_quat.setEuler(std::atan2(-gravity.y(), gravity.z()), 0,
-  // std::atan2(gravity.y(), -gravity.x()));
-
-  tf2::Transform global_to_camera_tf(global_to_imu_quat * imu_to_camera_tf.getRotation(), camera_position_);
+  auto rotation_axis = gravity.cross(tf2::Vector3(0, 0, 1));
+  auto global_to_camera_tf = camera_offset_ *
+                             tf2::Transform(tf2::Quaternion(rotation_axis, gravity.angle(tf2::Vector3(0, 0, 1)))) *
+                             imu_to_camera_tf;
 
   geometry_msgs::msg::TransformStamped global_to_camera_tf_msg;
   global_to_camera_tf_msg.header.stamp = msg->header.stamp;

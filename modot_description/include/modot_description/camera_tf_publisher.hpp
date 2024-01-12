@@ -33,7 +33,8 @@ private:
   std::string global_frame_;
   std::string camera_frame_;
   std::string imu_frame_;
-  tf2::Vector3 camera_position_;
   double lpf_factor_;
+
+  tf2::Transform camera_offset_;
 };
 }  // namespace modot_description
