@@ -122,6 +122,7 @@ def generate_launch_description():
         executable="sound_notifier",
         name="sound_notifier",
         output="screen",
+        parameters=[{"num_of_yolo_detections_pubs": 2}],
     )
 
     micro_ros_agent_node = Node(
