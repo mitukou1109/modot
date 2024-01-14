@@ -1,8 +1,5 @@
 yolo_detector:
   ros__parameters:
-    image_topics:
-      - /realsense/color/image_raw
-      - /camera/image_raw
     model_conf_threshold: 0.4
     model_iou_threshold: 0.5
     model_image_size: "416"

@@ -1,10 +1,8 @@
-import functools
 import glob
 import os
 
 import rclpy
 import rclpy.logging
-import rclpy.subscription
 import sensor_msgs.msg
 import simpleaudio
 import std_msgs.msg
@@ -32,13 +30,11 @@ class SoundNotifier(Node):
         self.misc_sound_playback: simpleaudio.PlayObject = None
 
         self.play_misc_sound_thread: StoppableThread = None
-        self.yolo_detections_pending_ids: list[list[str]] = []
         self.face_identifier_result_image_width: int = None
 
         self.declare_parameter("enable_obstacle_notification", False)
         self.declare_parameter("enable_yolo_notification", False)
         self.declare_parameter("enable_face_notification", False)
-        self.declare_parameter("num_of_yolo_detections_pubs", 1)
         self.declare_parameter("face_front_range", 0.4)
 
         self.obstacle_detected_sub = self.create_subscription(
@@ -47,24 +43,12 @@ class SoundNotifier(Node):
             self.obstacle_detected_callback,
             1,
         )
-
-        self.num_of_yolo_detections_pubs = (
-            self.get_parameter("num_of_yolo_detections_pubs")
-            .get_parameter_value()
-            .integer_value
+        self.yolo_detections_sub = self.create_subscription(
+            vision_msgs.msg.Detection2DArray,
+            "yolo_detector/detections",
+            self.yolo_detections_callback,
+            1,
         )
-        self.yolo_detections_subs: list[rclpy.subscription.Subscription] = []
-        for i in range(self.num_of_yolo_detections_pubs):
-            self.yolo_detections_pending_ids.append([])
-            self.yolo_detections_subs.append(
-                self.create_subscription(
-                    vision_msgs.msg.Detection2DArray,
-                    f"yolo_detector/detections_{i}",
-                    functools.partial(self.yolo_detections_callback, pub_id=i),
-                    1,
-                )
-            )
-
         self.face_detections_sub = self.create_subscription(
             vision_msgs.msg.Detection2DArray,
             "face_identifier/detections",
@@ -141,9 +125,7 @@ class SoundNotifier(Node):
 
                 self.obstacle_sound_playback = self.obstacle_sound.play()
 
-    def yolo_detections_callback(
-        self, msg: vision_msgs.msg.Detection2DArray, pub_id: int
-    ) -> None:
+    def yolo_detections_callback(self, msg: vision_msgs.msg.Detection2DArray) -> None:
         if (
             not self.get_parameter("enable_yolo_notification")
             .get_parameter_value()
@@ -160,25 +142,20 @@ class SoundNotifier(Node):
         ):
             return
 
-        self.yolo_detections_pending_ids[pub_id].clear()
-        detection: vision_msgs.msg.Detection2D
-        for detection in msg.detections:
-            if detection.id in self.yolo_sounds.keys():
-                self.yolo_detections_pending_ids[pub_id].append(detection.id)
-
         if (
             self.play_misc_sound_thread is None
             or not self.play_misc_sound_thread.is_alive()
         ):
-            ids = sum(self.yolo_detections_pending_ids, [])
+            ids = []
+            detection: vision_msgs.msg.Detection2D
+            for detection in msg.detections:
+                if detection.id in self.yolo_sounds.keys():
+                    ids.append(detection.id)
             if ids:
                 self.play_misc_sound_thread = StoppableThread(
                     target=self.play_yolo_sound, args=(ids,)
                 )
                 self.play_misc_sound_thread.start()
-            self.yolo_detections_pending_ids = [
-                [] for _ in range(self.num_of_yolo_detections_pubs)
-            ]
 
     def face_detections_callback(self, msg: vision_msgs.msg.Detection2DArray) -> None:
         if (
