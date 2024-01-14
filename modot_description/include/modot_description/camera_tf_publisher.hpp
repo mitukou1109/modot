@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rclcpp/rclcpp.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
@@ -21,6 +22,7 @@ public:
 private:
   void accelCallback(const sensor_msgs::msg::Imu::SharedPtr msg);
 
+  rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr camera_vel_pub_;
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr accel_sub_;
 
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
@@ -35,6 +37,8 @@ private:
   std::string imu_frame_;
   double lpf_factor_;
 
+  tf2::Vector3 gravity_;
+  tf2::Stamped<tf2::Vector3> camera_vel_;
   tf2::Transform camera_offset_;
 };
 }  // namespace modot_description

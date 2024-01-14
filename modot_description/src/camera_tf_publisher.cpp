@@ -36,12 +36,16 @@ CameraTFPublisher::CameraTFPublisher(const std::string& node_name, const std::st
   this->get_parameter("camera_y", camera_offset_.getOrigin()[1]);
   this->get_parameter("camera_z", camera_offset_.getOrigin()[2]);
 
+  camera_vel_.stamp_ = tf2_ros::fromRclcpp(this->get_clock()->now());
+  camera_vel_.frame_id_ = global_frame_;
+  camera_vel_.setValue(0, 0, 0);
   camera_offset_.getBasis().setRPY(0, 0, -M_PI_2);
 
   parameter_event_handler_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
   parameter_updater_ = std::make_unique<modot_lib::ParameterUpdater>(parameter_event_handler_);
   parameter_updater_->addParameter("lpf_factor", lpf_factor_);
 
+  camera_vel_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>("~/camera_vel", 1);
   accel_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("accel", rclcpp::SensorDataQoS(),
                                                                 std::bind(&CameraTFPublisher::accelCallback, this, _1));
 
@@ -53,7 +57,7 @@ CameraTFPublisher::CameraTFPublisher(const std::string& node_name, const std::st
 
 void CameraTFPublisher::accelCallback(const sensor_msgs::msg::Imu::SharedPtr msg)
 {
-  static tf2::Vector3 accel_prev;
+  static bool gravity_initialized = false;
 
   tf2::Stamped<tf2::Transform> imu_to_camera_tf;
   try
@@ -69,13 +73,28 @@ void CameraTFPublisher::accelCallback(const sensor_msgs::msg::Imu::SharedPtr msg
   tf2::Vector3 accel;
   tf2::fromMsg(msg->linear_acceleration, accel);
 
-  auto gravity = lpf_factor_ * accel_prev + (1.0 - lpf_factor_) * accel;
-  accel_prev = accel;
+  if (!gravity_initialized)
+  {
+    gravity_ = accel;
+    gravity_initialized = true;
+  }
 
-  auto rotation_axis = gravity.cross(tf2::Vector3(0, 0, 1));
+  gravity_ = lpf_factor_ * gravity_ + (1 - lpf_factor_) * accel;
+
+  auto rotation_axis = gravity_.cross(tf2::Vector3(0, 0, 1));
   auto global_to_camera_tf = camera_offset_ *
-                             tf2::Transform(tf2::Quaternion(rotation_axis, gravity.angle(tf2::Vector3(0, 0, 1)))) *
+                             tf2::Transform(tf2::Quaternion(rotation_axis, gravity_.angle(tf2::Vector3(0, 0, 1)))) *
                              imu_to_camera_tf;
+
+  auto global_accel = global_to_camera_tf.getBasis() * imu_to_camera_tf.inverse().getBasis() * (accel - gravity_);
+  camera_vel_ += global_accel * (tf2_ros::fromMsg(msg->header.stamp) - camera_vel_.stamp_).count() / 1e9;
+  camera_vel_.stamp_ = tf2_ros::fromMsg(msg->header.stamp);
+
+  geometry_msgs::msg::TwistStamped camera_vel_msg;
+  camera_vel_msg.header.stamp = msg->header.stamp;
+  camera_vel_msg.header.frame_id = global_frame_;
+  camera_vel_msg.twist.linear = tf2::toMsg(camera_vel_);
+  camera_vel_pub_->publish(camera_vel_msg);
 
   geometry_msgs::msg::TransformStamped global_to_camera_tf_msg;
   global_to_camera_tf_msg.header.stamp = msg->header.stamp;
