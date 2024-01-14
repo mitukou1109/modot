@@ -53,7 +53,7 @@ CameraTFPublisher::CameraTFPublisher(const std::string& node_name, const std::st
 
 void CameraTFPublisher::accelCallback(const sensor_msgs::msg::Imu::SharedPtr msg)
 {
-  static tf2::Vector3 accel_prev;
+  static tf2::Vector3 gravity = { 0, 0, 0 };
 
   tf2::Stamped<tf2::Transform> imu_to_camera_tf;
   try
@@ -69,8 +69,7 @@ void CameraTFPublisher::accelCallback(const sensor_msgs::msg::Imu::SharedPtr msg
   tf2::Vector3 accel;
   tf2::fromMsg(msg->linear_acceleration, accel);
 
-  auto gravity = lpf_factor_ * accel_prev + (1.0 - lpf_factor_) * accel;
-  accel_prev = accel;
+  gravity = lpf_factor_ * gravity + (1.0 - lpf_factor_) * accel;
 
   auto rotation_axis = gravity.cross(tf2::Vector3(0, 0, 1));
   auto global_to_camera_tf = camera_offset_ *
