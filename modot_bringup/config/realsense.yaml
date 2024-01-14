@@ -6,6 +6,8 @@ realsense:
     enable_gyro: false
     enable_accel: true
     pointcloud.enable: true
+    pointcloud.stream_filter: 2
+    pointcloud.allow_no_texture_points: true
     accel_qos: SENSOR_DATA
     color_qos: SENSOR_DATA
     depth_qos: SENSOR_DATA
