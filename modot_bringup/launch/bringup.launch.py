@@ -24,14 +24,6 @@ def generate_launch_description():
         ]
     )
 
-    image_rotate_config_file = PathJoinSubstitution(
-        [
-            modot_bringup_share_dir,
-            "config",
-            "image_rotate.yaml",
-        ]
-    )
-
     yolo_detector_config_file = PathJoinSubstitution(
         [
             modot_bringup_share_dir,
@@ -90,17 +82,6 @@ def generate_launch_description():
         parameters=[{"video_device": "/dev/modot_camera"}],
     )
 
-    image_rotate_node = Node(
-        package="image_rotate",
-        executable="image_rotate",
-        name="image_rotate",
-        remappings=[
-            ("image", "/camera/image_raw"),
-            ("rotated/image", "/camera/image_rotated"),
-        ],
-        parameters=[image_rotate_config_file],
-    )
-
     yolo_detector_node = Node(
         package="ultralytics_ros",
         executable="detector",
@@ -114,7 +95,7 @@ def generate_launch_description():
         executable="face_identifier",
         name="face_identifier",
         output="screen",
-        remappings=[("image_raw", "/camera/image_rotated")],
+        remappings=[("image_raw", "/camera/image_raw")],
     )
 
     sound_notifier_node = Node(
@@ -154,7 +135,6 @@ def generate_launch_description():
             realsense_container,
             realsense_tf_publisher_node,
             v4l2_camera_node,
-            image_rotate_node,
             yolo_detector_node,
             face_identifier_node,
             sound_notifier_node,
