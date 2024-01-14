@@ -1,6 +1,7 @@
 #include "modot_recognition/obstacle_detector.hpp"
 
 #include <rclcpp_components/register_node_macro.hpp>
+#include <pcl/filters/crop_box.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/segmentation/extract_clusters.h>
@@ -93,6 +94,13 @@ void ObstacleDetector::pointCloudCallback(const sensor_msgs::msg::PointCloud2::U
     return;
   }
   cloud->header.frame_id = global_frame_;
+
+  pcl::CropBox<pcl::PointXYZ> crop_box;
+  crop_box.setInputCloud(cloud);
+  crop_box.setMin(Eigen::Vector4f(-0.25, -0.25, -std::numeric_limits<float>::infinity(), 1.0));
+  crop_box.setMax(Eigen::Vector4f(0.25, 0.25, std::numeric_limits<float>::infinity(), 1.0));
+  crop_box.setNegative(true);
+  crop_box.filter(*cloud);
 
   pcl::SACSegmentation<pcl::PointXYZ> seg;
   seg.setOptimizeCoefficients(true);
