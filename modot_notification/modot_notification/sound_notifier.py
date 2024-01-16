@@ -194,9 +194,9 @@ class SoundNotifier(Node):
                     direction = "from_left"
                 else:
                     if normalized_x < (1 - front_range) / 2:
-                        direction = "left"
-                    elif normalized_x > (1 + front_range) / 2:
                         direction = "right"
+                    elif normalized_x > (1 + front_range) / 2:
+                        direction = "left"
                     else:
                         direction = "front"
                 ids.append(detection.id)
