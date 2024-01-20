@@ -1,8 +1,13 @@
 # modot
 
-Robot for the blind
+Robot for the visually impaired
 
 ## Setup & launch
+
+### Requirements
+
+- ROS 2 Humble
+- [librealsense](https://github.com/IntelRealSense/librealsense) v2.54.1
 
 ```
 $ mkdir -p ~/modot_ws/src
@@ -12,3 +17,9 @@ $ python3 src/modot/face_recognition_ros/register_known_face.py <path to image> 
 $ python3 src/modot/modot_notification/generate_face_sound.py
 $ ros2 launch modot_bringup bringup.launch
 ```
+
+## Related packages
+
+- [ultralytics_ros](https://github.com/mitukou1109/ultralytics_ros)
+- [face_recognition_ros](https://github.com/mitukou1109/face_recognition_ros)
+- [modot_uros](https://github.com/mitukou1109/modot_uros)
