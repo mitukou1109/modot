@@ -14,7 +14,7 @@ repositories:
   realsense-ros:
     type: git
     url: https://github.com/IntelRealSense/realsense-ros.git
-    version: ros2-development
+    version: 7bd5c600bb16c649b7eb01f6e7e8b4905db8896d
   ultralytics_ros:
     type: git
     url: https://github.com/mitukou1109/ultralytics_ros.git
