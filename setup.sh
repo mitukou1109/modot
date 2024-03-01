@@ -16,10 +16,6 @@ pip install -r src/ultralytics_ros/requirements_edgetpu.txt
 colcon build --symlink-install
 source install/local_setup.sh
 
-ros2 run micro_ros_setup create_agent_ws.sh
-ros2 run micro_ros_setup build_agent.sh
-source install/local_setup.sh
-
 python3 src/modot/modot_notification/generate_sound.py
 
 sudo cp src/modot/modot_bringup/config/60-modot.rules /etc/udev/rules.d/
