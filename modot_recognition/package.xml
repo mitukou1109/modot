@@ -9,6 +9,8 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <depend>libpcl-all-dev</depend>
+
   <depend>modot_lib</depend>
   <depend>pcl_conversions</depend>
   <depend>pcl_ros</depend>
