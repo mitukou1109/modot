@@ -1,12 +1,16 @@
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.substitutions import PathJoinSubstitution
+from launch.actions import DeclareLaunchArgument
+from launch.conditions import IfCondition
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
 
 def generate_launch_description():
     modot_bringup_share_dir = get_package_share_directory("modot_bringup")
+
+    launch_realsense = LaunchConfiguration("launch_realsense")
 
     realsense_config_file = PathJoinSubstitution(
         [
@@ -40,6 +44,12 @@ def generate_launch_description():
         ]
     )
 
+    launch_realsense_arg = DeclareLaunchArgument(
+        "launch_realsense",
+        default_value="false",
+        description="Whether to launch RealSense related nodes",
+    )
+
     realsense_container = ComposableNodeContainer(
         name="realsense_container",
         namespace="",
@@ -63,6 +73,7 @@ def generate_launch_description():
             ),
         ],
         output="screen",
+        condition=IfCondition(launch_realsense),
     )
 
     realsense_tf_publisher_node = Node(
@@ -72,14 +83,7 @@ def generate_launch_description():
         output="screen",
         remappings=[("accel", "/realsense/accel/sample")],
         parameters=[realsense_tf_publisher_config_file],
-    )
-
-    v4l2_camera_node = Node(
-        package="v4l2_camera",
-        executable="v4l2_camera_node",
-        name="v4l2_camera",
-        remappings=[("image_raw", "/camera/image_raw")],
-        parameters=[{"video_device": "/dev/modot_camera"}],
+        condition=IfCondition(launch_realsense),
     )
 
     yolo_detector_node = Node(
@@ -106,14 +110,6 @@ def generate_launch_description():
         output="screen",
     )
 
-    micro_ros_agent_node = Node(
-        package="micro_ros_agent",
-        executable="micro_ros_agent",
-        name="micro_ros_agent",
-        output="screen",
-        arguments=["serial", "--dev", "/dev/modot_nodemcu", "--baud", "115200"],
-    )
-
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -132,13 +128,12 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
+            launch_realsense_arg,
             realsense_container,
             realsense_tf_publisher_node,
-            v4l2_camera_node,
             yolo_detector_node,
             face_identifier_node,
             sound_notifier_node,
-            micro_ros_agent_node,
             rviz_node,
             rqt_reconfigure_node,
         ]

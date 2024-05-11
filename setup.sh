@@ -12,8 +12,4 @@ source install/local_setup.sh
 
 python3 src/modot/modot_notification/generate_sound.py
 
-sudo cp src/modot/modot_bringup/config/60-modot.rules /etc/udev/rules.d/
-sudo udevadm control --reload
-sudo udevadm trigger
-
 echo "Done!"
