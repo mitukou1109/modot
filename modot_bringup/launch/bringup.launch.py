@@ -11,6 +11,7 @@ def generate_launch_description():
     modot_bringup_share_dir = get_package_share_directory("modot_bringup")
 
     launch_realsense = LaunchConfiguration("launch_realsense")
+    enable_face_notification = LaunchConfiguration("enable_face_notification")
 
     realsense_config_file = PathJoinSubstitution(
         [
@@ -48,6 +49,12 @@ def generate_launch_description():
         "launch_realsense",
         default_value="false",
         description="Whether to launch RealSense related nodes",
+    )
+
+    enable_face_notification_arg = DeclareLaunchArgument(
+        "enable_face_notification",
+        default_value="false",
+        description="Whether to enable face detection notification",
     )
 
     realsense_container = ComposableNodeContainer(
@@ -108,6 +115,7 @@ def generate_launch_description():
         executable="sound_notifier",
         name="sound_notifier",
         output="screen",
+        parameters=[{"enable_face_notification": enable_face_notification}],
     )
 
     rviz_node = Node(
@@ -129,6 +137,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             launch_realsense_arg,
+            enable_face_notification_arg,
             realsense_container,
             realsense_tf_publisher_node,
             yolo_detector_node,
